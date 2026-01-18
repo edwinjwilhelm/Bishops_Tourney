@@ -1,0 +1,9 @@
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+pygame==2.6.0
+qrcode==7.4.2
+Pillow==10.4.0
+python-chess==1.999
+pyjwt==2.8.0
+cryptography==41.0.7
+httpx==0.25.2

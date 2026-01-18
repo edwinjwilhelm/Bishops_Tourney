@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+ENV/
+env/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+
+# Game history files (optional - uncomment to exclude)
+# opt/netplay/games/*.json
+
+# Backup files
+*.bak
+
+# Environment variables and secrets
+.env
+*.key
+*.pem
+
+# Temporary files
+*.tmp
+*.temp

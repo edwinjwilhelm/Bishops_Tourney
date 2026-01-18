@@ -1,0 +1,31 @@
+
+
+Bishops, The Game
+
+Short Game(Unrated Social Game : one player eliminated)
+
+Queens stand at random sides of the King to start play and may swap positions with their King on the first move. 
+White moves first and play proceeds clockwise.
+Checkmate of the King on the immediate left is the goal. Other Kings may be placed in
+check or checkmated also. Any opposing colour may
+be captured on any move. Opposing pieces may be used to create a check or checkmate
+condition. Example White may employ a Black Knight, Pink Bishop and White Queen to check
+or checkmate Grey. Pawns move ahead traditionally. A Pawn may check or checkmate a King occupying these spaces. 
+Pawns must reach the 8th rank to become a Queen.(for example a8 to h8 for White) Edge pawns may not capture
+edge pawns on the first round of moves. Kings may enter their own coloured corner square and become 
+immune from check or checkmate, provided that both of their Bishops are not captured. When a King enters
+any corner square, both of his Bishops become Queens instantly. Castling is not allowed. If two Queens are
+captured, the King must on his next move return to an unoccupied space around the corner
+square, but may not move into check. If the King cannot re-enter then he must wait (miss a
+turn) until a square is available. The short game proceeds until a checkmate or a player
+resigns. That colour is then removed from the board. Play may end now with 3 players
+victorious.
+
+Long Game (Rated : three players eliminated)
+
+The next move is made by the next player to the left, or by the player whose King is in Check
+as a result of the pieces being removed. When two colours remain, and both remaining Kings
+are on the playing area , the game is then played as
+Chess in a duel. If a King is not able to move onto the board from a safe corner square when only
+two players remain then he will lose the game. To prevent unauthorized reproduction a minor false rule
+has been included (not found in the code) in this limited copyright edition.

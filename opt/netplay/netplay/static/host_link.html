@@ -1,0 +1,236 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bishops — Host Links</title>
+  <style>
+    body{font-family:system-ui,Arial;background:#0f141b;color:#e8e8e8;margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh}
+    .box{max-width:720px;padding:18px;border:1px solid #3b4b63;background:#121417;border-radius:10px}
+    input{width:100%;padding:10px;font-size:15px;border:1px solid #3b4b63;background:#0a0f15;color:#e8e8e8;border-radius:6px}
+    a{color:#9db2cf}
+    .row{display:flex;gap:8px;align-items:center}
+    button{padding:10px 12px;background:#2d3b52;color:#e8e8e8;border:1px solid #4d6286;cursor:pointer;border-radius:6px}
+    small{color:#9db2cf}
+    .section{margin:14px 0 18px}
+    h3{margin:10px 0 8px}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .card{border:1px solid #3b4b63;background:#0f141b;border-radius:8px;padding:10px}
+    .qr{background:#0a0f15;border:1px solid #3b4b63;width:220px;height:220px;display:flex;align-items:center;justify-content:center;border-radius:6px;margin:6px auto}
+    .center{display:flex;justify-content:center}
+    @media (max-width: 560px){.grid2{grid-template-columns:1fr}}
+    @media print{body{background:#fff;color:#000}.box{border-color:#999;background:#fff}.qr{border-color:#000}}
+  </style>
+</head>
+<body>
+  <div class="box">
+    <div class="section" style="margin-top:0;">
+      <h3 style="margin-top:0">Both QRs (Standard + Chess-only)</h3>
+      <small>Show this to players to scan their preferred mode. Links prefer your LAN IP.</small>
+      <div class="grid2" style="margin-top:8px;">
+        <div class="card">
+          <div class="row" style="justify-content:space-between"><strong>Standard</strong></div>
+          <div id="qrBothStd" class="qr"><span style="color:#9db2cf;font-size:12px;">QR loading…</span></div>
+          <div class="row" style="margin-top:6px;">
+            <input id="bothLinkStd" value="(loading)" readonly />
+            <button id="copyBothStd">Copy</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="row" style="justify-content:space-between"><strong>Chess-only</strong></div>
+          <div id="qrBothChess" class="qr"><span style="color:#9db2cf;font-size:12px;">QR loading…</span></div>
+          <div class="row" style="margin-top:6px;">
+            <input id="bothLinkChess" value="(loading)" readonly />
+            <button id="copyBothChess">Copy</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <h2 style="margin:0 0 6px">Share a join link</h2>
+    <div class="section" style="border:1px solid #3b4b63; padding:10px; border-radius:8px; background:#0f141b; margin-bottom:14px;">
+      <div class="row" style="justify-content:space-between; gap:8px;">
+        <strong>Quick Share</strong>
+        <label class="row" style="gap:6px; align-items:center;">
+          <small style="color:#9db2cf;">Mode</small>
+          <select id="qsMode" style="padding:6px; background:#0a0f15; color:#e8e8e8; border:1px solid #3b4b63;">
+            <option value="std">Standard</option>
+            <option value="chess">Chess-only</option>
+          </select>
+        </label>
+      </div>
+      <div class="row" style="margin:10px 0;">
+        <input id="qsLink" value="(loading)" readonly />
+        <button id="qsCopy">Copy</button>
+      </div>
+      <div id="qsQr" style="background:#0a0f15;border:1px solid #3b4b63; width:220px; height:220px; display:flex; align-items:center; justify-content:center; border-radius:6px;">
+        <span style="color:#9db2cf; font-size:12px;">QR loading…</span>
+      </div>
+    </div>
+    <p class="muted" style="margin:0 0 10px"><small>These links prefer your LAN IP so phones/tablets on Wi‑Fi can connect.</small></p>
+
+    <div class="section">
+      <h3>Standard (random seat: WHITE/GREY/BLACK/PINK)</h3>
+      <div class="row" style="margin-bottom:10px;">
+        <input id="linkStd" value="(loading)" readonly />
+        <button id="copyStd">Copy</button>
+      </div>
+      <div id="qrStd" style="background:#0a0f15;border:1px solid #3b4b63; width:220px; height:220px; display:flex; align-items:center; justify-content:center; margin:8px 0; border-radius:6px;">
+        <span style="color:#9db2cf; font-size:12px;">QR loading…</span>
+      </div>
+      <div class="row" style="gap:8px; align-items:center; margin-top:6px;">
+        <button id="btnNewStd">Start New Standard (reset)</button>
+        <small id="statusStd" style="margin-left:8px; color:#9db2cf;"></small>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Chess-only (random seat: WHITE/BLACK)</h3>
+      <div class="row" style="margin-bottom:10px;">
+        <input id="linkChess" value="(loading)" readonly />
+        <button id="copyChess">Copy</button>
+      </div>
+      <div id="qrChess" style="background:#0a0f15;border:1px solid #3b4b63; width:220px; height:220px; display:flex; align-items:center; justify-content:center; margin:8px 0; border-radius:6px;">
+        <span style="color:#9db2cf; font-size:12px;">QR loading…</span>
+      </div>
+      <div class="row" style="gap:8px; align-items:center; margin-top:6px;">
+        <button id="btnNewChess">Start New Chess (reset)</button>
+        <small id="statusChess" style="margin-left:8px; color:#9db2cf;"></small>
+      </div>
+    </div>
+
+    <p><small>On iPad/iPhone: open Camera and point at the QR, then tap the banner to join. No typing needed.</small></p>
+    <p><small>Optional: open this page on your iPad and Add to Home Screen for a one‑tap game icon.</small></p>
+  </div>
+  <script>
+    function setQr(el, url){
+      if(!el) return;
+      el.innerHTML = '';
+      const img = document.createElement('img');
+      img.alt = 'QR';
+      img.width = 210; img.height = 210;
+      img.style.maxWidth = '100%';
+      img.src = '/qr.png?url=' + encodeURIComponent(url);
+      el.appendChild(img);
+    }
+    async function load(){
+      try{
+        const res = await fetch('/whereami');
+        const j = await res.json();
+        const base = j && j.ok ? (j.base || location.origin) : location.origin;
+        const std = j && j.ok ? (j.join_random || (base + '/static/join_random.html')) : (base + '/static/join_random.html');
+        const chess = j && j.ok ? (j.join_chess || (base + '/static/join_chess.html')) : (base + '/static/join_chess.html');
+        // Populate Both QRs panel
+        const bothStdEl = document.getElementById('qrBothStd');
+        const bothChessEl = document.getElementById('qrBothChess');
+        const bothStdLink = document.getElementById('bothLinkStd');
+        const bothChessLink = document.getElementById('bothLinkChess');
+        if (bothStdEl && bothChessEl && bothStdLink && bothChessLink){
+          bothStdLink.value = std; setQr(bothStdEl, std);
+          bothChessLink.value = chess; setQr(bothChessEl, chess);
+        }
+        document.getElementById('linkStd').value = std;
+        document.getElementById('linkChess').value = chess;
+        setQr(document.getElementById('qrStd'), std);
+        setQr(document.getElementById('qrChess'), chess);
+        // Seed Quick Share with standard by default
+        try {
+          const modeSel = document.getElementById('qsMode');
+          const linkEl = document.getElementById('qsLink');
+          const qrEl   = document.getElementById('qsQr');
+          if (modeSel && linkEl && qrEl){
+            linkEl.value = std; setQr(qrEl, std);
+            modeSel.onchange = ()=>{
+              const v = modeSel.value === 'chess' ? chess : std;
+              linkEl.value = v; setQr(qrEl, v);
+            };
+          }
+        } catch {}
+      }catch(e){
+        const base = location.origin;
+        const std = base + '/static/join_random.html';
+        const chess = base + '/static/join_chess.html';
+        const bothStdEl = document.getElementById('qrBothStd');
+        const bothChessEl = document.getElementById('qrBothChess');
+        const bothStdLink = document.getElementById('bothLinkStd');
+        const bothChessLink = document.getElementById('bothLinkChess');
+        if (bothStdEl && bothChessEl && bothStdLink && bothChessLink){
+          bothStdLink.value = std; setQr(bothStdEl, std);
+          bothChessLink.value = chess; setQr(bothChessEl, chess);
+        }
+        document.getElementById('linkStd').value = std;
+        document.getElementById('linkChess').value = chess;
+        setQr(document.getElementById('qrStd'), std);
+        setQr(document.getElementById('qrChess'), chess);
+        try {
+          const modeSel = document.getElementById('qsMode');
+          const linkEl = document.getElementById('qsLink');
+          const qrEl   = document.getElementById('qsQr');
+          if (modeSel && linkEl && qrEl){
+            linkEl.value = std; setQr(qrEl, std);
+            modeSel.onchange = ()=>{
+              const v = modeSel.value === 'chess' ? chess : std;
+              linkEl.value = v; setQr(qrEl, v);
+            };
+          }
+        } catch {}
+      }
+    }
+    load();
+    // Quick Share copy
+    (function(){
+      const btn = document.getElementById('qsCopy');
+      const linkEl = document.getElementById('qsLink');
+      if (!btn || !linkEl) return;
+      btn.addEventListener('click', async ()=>{
+        try{ await navigator.clipboard.writeText(linkEl.value); alert('Copied'); }
+        catch(e){ alert('Copy failed'); }
+      });
+    })();
+    document.getElementById('copyStd').onclick = async ()=>{
+      try{ await navigator.clipboard.writeText(document.getElementById('linkStd').value); alert('Copied'); }
+      catch(e){ alert('Copy failed'); }
+    };
+    document.getElementById('copyChess').onclick = async ()=>{
+      try{ await navigator.clipboard.writeText(document.getElementById('linkChess').value); alert('Copied'); }
+      catch(e){ alert('Copy failed'); }
+    };
+    // Dual panel copy buttons
+    (function(){
+      const b1 = document.getElementById('copyBothStd');
+      const b2 = document.getElementById('copyBothChess');
+      const l1 = document.getElementById('bothLinkStd');
+      const l2 = document.getElementById('bothLinkChess');
+      if (b1 && l1){ b1.addEventListener('click', async ()=>{ try{ await navigator.clipboard.writeText(l1.value); alert('Copied'); } catch(e){ alert('Copy failed'); } }); }
+      if (b2 && l2){ b2.addEventListener('click', async ()=>{ try{ await navigator.clipboard.writeText(l2.value); alert('Copied'); } catch(e){ alert('Copy failed'); } }); }
+    })();
+    // Start New Standard button
+    (function(){
+      const btn = document.getElementById('btnNewStd');
+      const st  = document.getElementById('statusStd');
+      if (!btn) return;
+      btn.addEventListener('click', async ()=>{
+        try {
+          st.textContent = 'resetting…';
+          const res = await fetch('/admin/new-game', { method:'POST' });
+          if (res.ok){ st.textContent = 'Standard board reset.'; }
+          else { st.textContent = 'Reset failed.'; }
+        } catch(e){ st.textContent = 'Reset error.'; }
+      });
+    })();
+    // Start New Chess button
+    (function(){
+      const btn = document.getElementById('btnNewChess');
+      const st  = document.getElementById('statusChess');
+      if (!btn) return;
+      btn.addEventListener('click', async ()=>{
+        try {
+          st.textContent = 'resetting…';
+          const res = await fetch('/admin/new-chess', { method:'POST' });
+          if (res.ok){ st.textContent = 'Chess board reset.'; }
+          else { st.textContent = 'Reset failed.'; }
+        } catch(e){ st.textContent = 'Reset error.'; }
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>Bishops – A Chess Variant | Play Online</title>
+  <meta name="description" content="Play Bishops, a four‑player chess variant. We need human testers—play testers wanted to try alliances, duel finish, and fast online games.">
+  <meta name="robots" content="index,follow">
+  <link rel="canonical" href="https://www.bishopsthegame.com/">
+  <link rel="icon" href="/favicon.ico">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Bishops – A Chess Variant">
+  <meta property="og:description" content="Create or join Bishops tables and play online with friends.">
+  <meta property="og:url" content="https://www.bishopsthegame.com/">
+  <meta property="og:image" content="https://www.bishopsthegame.com/static/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Bishops – A Chess Variant">
+  <meta name="twitter:description" content="Create or join Bishops tables and play online with friends.">
+  <meta name="twitter:image" content="https://www.bishopsthegame.com/static/og-image.png">
+  <style>
+    :root { --bg:#0c0f17; --panel:#121827; --accent:#5af0d6; --text:#e8ecf5; --muted:#9aa7c0; --border:#1f2a3d; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "Inter", system-ui, -apple-system, sans-serif; background: radial-gradient(circle at 20% 20%, #121a2b, #0c0f17 55%); color: var(--text); line-height: 1.6; display: flex; min-height: 100vh; justify-content: center; padding: 32px 16px; }
+    .shell { width: min(960px, 100%); background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 28px; box-shadow: 0 30px 80px rgba(0,0,0,0.35); }
+    h1 { margin: 0 0 6px; font-size: clamp(28px, 4vw, 38px); letter-spacing: 0.4px; }
+    h2 { margin: 24px 0 12px; font-size: 20px; }
+    p { margin: 0 0 14px; color: var(--muted); }
+    .pill { display: inline-block; padding: 6px 12px; border-radius: 999px; background: rgba(255,255,255,0.06); color: var(--muted); font-size: 13px; margin: 0 0 12px; }
+    .cta-row { display: flex; flex-wrap: wrap; gap: 12px; margin: 16px 0 20px; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 16px; border-radius: 10px; border: 1px solid var(--border); background: #111; color: var(--text); text-decoration: none; cursor: pointer; transition: transform 0.12s ease, box-shadow 0.15s ease, border-color 0.15s; }
+    .btn-primary { border-color: var(--accent); box-shadow: 0 12px 30px rgba(90,240,214,0.25); }
+    .btn:hover { transform: translateY(-1px); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; margin-top: 10px; }
+    .card { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+    ul { margin: 8px 0 0 16px; color: var(--muted); }
+    ul li { margin: 6px 0; }
+    footer { margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border); color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; }
+    .status { font-size: 13px; color: var(--muted); margin: 6px 0 0; }
+    a { color: var(--accent); text-decoration: none; }
+    .auth { margin-top: 18px; padding: 16px; border: 1px dashed var(--border); border-radius: 12px; background: rgba(255,255,255,0.02); }
+    .auth-form { display: flex; flex-direction: column; gap: 12px; }
+    .auth-input { padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: rgba(255,255,255,0.05); color: var(--text); font-size: 14px; }
+    .auth-input:focus { outline: none; border-color: var(--accent); }
+    .auth-btn { padding: 12px; border-radius: 8px; border: 1px solid var(--accent); background: rgba(90,240,214,0.1); color: var(--accent); font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .auth-btn:hover { background: rgba(90,240,214,0.2); }
+    .auth-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .auth-message { font-size: 14px; padding: 10px; border-radius: 6px; }
+    .auth-success { background: rgba(90,240,214,0.1); color: var(--accent); }
+    .auth-error { background: rgba(255,100,100,0.1); color: #ff6b6b; }
+    .auth-user { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(90,240,214,0.05); border-radius: 8px; }
+    @media (max-width: 600px) { body { padding: 16px; } .shell { padding: 22px; } .cta-row { flex-direction: column; } }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="pill">Chess Variant • Four-Player • Chess Duel Finish • Tournaments for Humans only!</div>
+    <h1>Bishops, The Game</h1>
+    <p style="margin-bottom:18px;">A conversational, alliance-friendly chess variant. Start as four, Chess duel as two.</p>
+
+    <div style="margin:16px 0;">
+      <!-- Local-only preview image; update path if you move the file -->
+      <img src="file:///C:/Screens_manual/clean_board.jpg" alt="Board preview" style="max-width:100%; border:1px solid #222; border-radius:10px; display:block; margin:auto;">
+    </div>
+
+    <h2>Why Bishops?</h2>
+    <div class="grid">
+      <div class="card"><strong>Alliances Welcome</strong><p>Talk, negotiate, and make deals to survive the short game.</p></div>
+      <div class="card"><strong>Four Down to Two</strong><p>Outwit opponents on 128 squares plus 4, then finish in a classic chess duel.</p></div>
+      <div class="card"><strong>Humans + AI</strong><p>Mix human seats and AI, swap modes, and restart instantly.</p></div>
+    </div>
+
+    <h2>Quick Start</h2>
+    <div class="card">
+      <ul>
+        <li>Open 4 tabs/windows; choose a name in each.</li>
+        <li>Connect seats: White, Grey, Black, Pink.</li>
+        <li>Decide Human vs AI for each seat.</li>
+        <li>When White shows GO (flashing), start playing.</li>
+        <li>Press New Game (and Confirm) to reset anytime; duel resets all four.</li>
+      </ul>
+    </div>
+
+    <h2>Play Style</h2>
+    <p>Watch the two players to your right; you may need to help them to avoid a loss on your left. Weaker players can team up to topple a stronger one. Alliances matter until only two remain—then it’s pure chess.</p>
+
+    <h2>Contact</h2>
+    <p><strong>Edwin J. Wilhelm to learn the rules</strong><br>
+       Bishops, The Game © 2016–2025<br>
+       <a href="mailto:bishops@bishopsthegame.com">bishops@bishopsthegame.com</a><br>
+       Canada</p>
+
+    <h2>Sign up / Sign in</h2>
+    <div class="auth">
+      <div id="auth"></div>
+    </div>
+
+    <footer>
+      <span>New site coming soon. Tournaments $5 $10 $20 $100 $500 Entry Amounts</span>
+    </footer>
+  </div>
+
+  <script>
+    const PLAY_URL = "https://play.bishopsthegame.com/static/index_v3.html";
+    const statusEl = document.getElementById("status");
+    document.getElementById("share").onclick = async () => {
+      try { await navigator.clipboard.writeText(PLAY_URL); statusEl.textContent = "Invite link copied."; }
+      catch { statusEl.textContent = "Copy failed. Long-press or right-click to copy."; }
+    };
+  </script>
+
+  <script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.2/+esm";
+
+    const supabase = createClient(
+      "https://wqceqyycatcjggmxunte.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndxY2VxeXljYXRjamdnbXh1bnRlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0NTYyODgsImV4cCI6MjA4MTAzMjI4OH0.j2PW1w32Znhj7qVG37o1vabOIrJ1ZbFj3eQK3F9mf-Q"
+    );
+
+    const authContainer = document.getElementById("auth");
+
+    async function checkAuth() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        authContainer.innerHTML = `
+          <div class="auth-user">
+            <span>🔒 Signed in as: <strong>${session.user.email}</strong></span>
+            <button class="auth-btn" id="signOutBtn">Sign Out</button>
+          </div>
+        `;
+        document.getElementById("signOutBtn").onclick = async () => {
+          await supabase.auth.signOut();
+          location.reload();
+        };
+      } else {
+        authContainer.innerHTML = `
+          <form class="auth-form" id="authForm">
+            <input type="text" class="auth-input" id="displayNameInput" placeholder="Choose your player name" required />
+            <input type="email" class="auth-input" id="emailInput" placeholder="Enter your email" required />
+            <button type="submit" class="auth-btn" id="submitBtn">Send Magic Link</button>
+            <div id="authMessage"></div>
+          </form>
+        `;
+        const authForm = document.getElementById("authForm");
+        const emailInput = document.getElementById("emailInput");
+        const nameInput = document.getElementById("displayNameInput");
+        const submitBtn = document.getElementById("submitBtn");
+        const message = document.getElementById("authMessage");
+        authForm.onsubmit = async (e) => {
+          e.preventDefault();
+          const email = (emailInput.value || "").trim().toLowerCase();
+          const rawName = (nameInput.value || "").trim();
+          const cleanName = rawName.replace(/[^a-zA-Z0-9_-]/g, "").slice(0,20);
+          if (!email) {
+            message.className = "auth-message auth-error";
+            message.textContent = "Enter your email.";
+            return;
+          }
+          if (!cleanName) {
+            message.className = "auth-message auth-error";
+            message.textContent = "Enter a player name (letters/numbers/-/_).";
+            return;
+          }
+          submitBtn.disabled = true;
+          submitBtn.textContent = "Sending...";
+          const redirect = new URL("https://play.bishopsthegame.com/static/index_v3.html");
+          redirect.searchParams.set("name", cleanName);
+          const { error } = await supabase.auth.signInWithOtp({
+            email,
+            options: { emailRedirectTo: redirect.toString() }
+          });
+          if (error) {
+            message.className = "auth-message auth-error";
+            message.textContent = `Error: ${error.message}`;
+          } else {
+            message.className = "auth-message auth-success";
+            message.textContent = "✓ Magic link sent! Check your email.";
+            emailInput.value = "";
+          }
+          submitBtn.disabled = false;
+          submitBtn.textContent = "Send Magic Link";
+        };
+      }
+    }
+
+    checkAuth();
+    supabase.auth.onAuthStateChange(() => checkAuth());
+  </script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+Summary of recent work (Phase A+B)
+-----------------------------------
+
+- Fixed frontend auth gating:
+  - Added and initialized `authTokenGlobal`, set it as soon as a Supabase session exists.
+  - Seed userId from `?name=` when present so magic-link redirects drop the gate.
+- Caching hardening:
+  - Added no-cache meta tags and version param (`v=40`) on the board page and versioned branding.js.
+  - Landing page set to no-cache to reduce stale loads.
+- Room/default fixes:
+  - Default room set to `main` to avoid missing “1” after restarts.
+  - Debug endpoints `/debug/piece-count` and `/library/list` now return clean errors on missing rooms instead of 500s.
+- Backend stability:
+  - Ensured `profiles` table exists in the live SQLite DB and `/profile` works.
+  - Service now starts cleanly and `/rooms` is 200; profile lookups are 200 when signed in.
+- Deploys:
+  - Latest code pushed to main and deployed; board loads with cache-buster `?v=40`.
+
+Next suggested steps (Phase C, optional):
+- Improve UX: clearer solo/AI vs human prompts; “Start human game?” when enough humans; better multi-tab guidance.
+- Enforce board gating for unauthenticated users everywhere; hide email on board.
+- Add robust auto-creation/checks for default rooms at startup to avoid manual fixes.

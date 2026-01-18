@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bishops | Tournament Hub</title>
+<style>
+    :root {
+        color-scheme: light only;
+        --bg: #f4f6fb;
+        --primary: #133d60;
+        --accent: #ffb34d;
+    }
+    * { box-sizing: border-box; }
+    body {
+        margin: 0;
+        font-family: "Segoe UI", Tahoma, sans-serif;
+        background: var(--bg);
+        color: #102030;
+        line-height: 1.6;
+    }
+    header {
+        padding: 60px 24px 80px;
+        background: linear-gradient(135deg, #0e253a, #184c75 65%, #1f6fa0);
+        color: #fff;
+        text-align: center;
+    }
+    header h1 {
+        font-size: clamp(2rem, 4vw, 3rem);
+        margin: 0;
+    }
+    header p {
+        max-width: 720px;
+        margin: 16px auto 32px;
+        font-size: 1.1rem;
+        opacity: 0.92;
+    }
+    .cta-row {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 16px;
+    }
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        border-radius: 999px;
+        padding: 14px 28px;
+        border: none;
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: 600;
+        text-decoration: none;
+    }
+    .btn-primary {
+        background: var(--accent);
+        color: #402600;
+        box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+    }
+    .btn-outline {
+        border: 2px solid rgba(255,255,255,.5);
+        color: #fff;
+    }
+    main {
+        max-width: 1080px;
+        margin: -40px auto 80px;
+        padding: 0 24px;
+    }
+    section {
+        background: #fff;
+        border-radius: 24px;
+        margin-top: 32px;
+        padding: 32px;
+        box-shadow: 0 20px 60px rgba(18, 47, 78, 0.12);
+    }
+    h2 {
+        margin-top: 0;
+        color: var(--primary);
+    }
+    .grid {
+        display: grid;
+        gap: 24px;
+    }
+    @media (min-width: 720px) {
+        .grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    .card {
+        border: 1px solid #e3e9f2;
+        border-radius: 18px;
+        padding: 24px;
+        background: #fdfdfd;
+    }
+    .downloads a {
+        display: inline-flex;
+        padding: 12px 16px;
+        border-radius: 12px;
+        border: 1px solid #d0d8e7;
+        margin-right: 12px;
+        margin-top: 10px;
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 600;
+    }
+    figure {
+        margin: 0;
+    }
+    .screenshot {
+        margin-top: 16px;
+        text-align: center;
+    }
+    .screenshot img {
+        width: 100%;
+        height: auto;
+        max-height: 640px;
+        object-fit: cover;
+        border-radius: 24px;
+        box-shadow: 0 30px 80px rgba(13, 35, 55, 0.25);
+    }
+    .screenshot figcaption {
+        margin-top: 12px;
+        font-size: 0.95rem;
+        color: #5b6782;
+    }
+    .lobby-embed {
+        border: 1px solid #d4ddef;
+        border-radius: 24px;
+        overflow: hidden;
+        background: #070d16;
+        box-shadow: inset 0 0 50px rgba(7,13,22,0.45);
+    }
+    .lobby-embed iframe {
+        width: 100%;
+        min-height: 560px;
+        border: 0;
+        display: block;
+        background: #05080f;
+    }
+    @media (max-width: 640px) {
+        .lobby-embed iframe { min-height: 480px; }
+    }
+    .lobby-actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 12px;
+        padding: 16px;
+        background: #0f1d33;
+        color: #c9d7f2;
+    }
+    .lobby-actions button {
+        border: none;
+        background: var(--accent);
+        color: #402600;
+        font-weight: 600;
+        padding: 10px 24px;
+        border-radius: 999px;
+        cursor: pointer;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    .lobby-actions a {
+        color: #9fc9ff;
+    }
+    footer {
+        text-align: center;
+        padding: 32px;
+        color: #75819b;
+    }
+</style>
+</head>
+<body>
+<header>
+    <h1>Bishops Tournament Hub & Membership</h1>
+    <p>Everything you need to play Bishops in competitive rooms. Download the tournament build, review the rules, then unlock premium online play for just $5 USD per month using our secure PayPal subscription.</p>
+    <div class="cta-row">
+        <a class="btn btn-primary" href="checkout_realtime.htm">Subscribe for $5 / month</a>
+        <a class="btn btn-outline" href="rules.htm">Read the rules</a>
+    </div>
+</header>
+
+<main>
+    <section>
+        <h2>Start Playing in Three Steps</h2>
+        <div class="grid three">
+            <div class="card">
+                <h3>1. Download netplay</h3>
+                <p>Grab the current Bishops netplay build and unzip it anywhere on your PC or Mac. Launch the provided script to host or join games.</p>
+                <div class="downloads">
+                    <a href="netplay.zip">Download netplay.zip</a>
+                </div>
+            </div>
+            <div class="card">
+                <h3>2. Review the rules</h3>
+                <p>New to Bishops? Read the official short- and long-game rules, including King/Queen swaps and duel mode details.</p>
+                <a href="rules.htm">Open Rules Reference &rarr;</a>
+            </div>
+            <div class="card">
+                <h3>Show your flag</h3>
+                <p>Let opponents know where you're playing from. Browse the refreshed gallery, pick your preset, and keep everything synced with the netplay client.</p>
+                <a href="findyourflag.htm">Go to Find Your Flag &rarr;</a>
+            </div>
+            <div class="card">
+                <h3>3. Activate your membership</h3>
+                <p>Use our PayPal-powered checkout to keep chat, uploads, and online matchmaking enabled on your account for only $5 USD per month.</p>
+                <a href="checkout_realtime.htm">Go to Checkout &rarr;</a>
+            </div>
+        </div>
+    </section>
+
+    <section id="liveLobby">
+        <h2>Live Bishops Lobby Preview</h2>
+        <p>Watch the Bishops Netplay lobby in real time directly from our site. Tap the button below to launch the full experience (room lists, seat claiming, chat, and admin tools) in a separate tab.</p>
+        <div class="lobby-embed" data-lobby-embed data-lobby-origin="https://play.bishopsthegame.net" data-room="main">
+            <iframe title="Live Bishops lobby" loading="lazy" allowfullscreen></iframe>
+            <div class="lobby-actions">
+                <button type="button" data-role="lobby-launch">Launch full lobby</button>
+                <span>If the preview does not load, <a href="#" target="_blank" rel="noopener" data-role="lobby-link">open the lobby in a new tab.</a></span>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <h2>$5 Monthly Checkout</h2>
+        <div class="grid two">
+            <div class="card">
+                <p>Payments are handled entirely by PayPal. Use your existing PayPal balance or any major credit card. You can cancel any time from PayPal and keep premium access for the remainder of the paid month.</p>
+                <ul>
+                    <li>Secure recurring billing at PayPal</li>
+                    <li>Immediate confirmation email</li>
+                    <li>Admin support: <a href="mailto:bishops@bishopsthegame.com">bishops@bishopsthegame.com</a></li>
+                </ul>
+                <p><strong>Ready?</strong> <a href="checkout_realtime.htm">Open the checkout page.</a></p>
+            </div>
+            <div class="card">
+                <h3>What you get</h3>
+                <ul>
+                    <li>Full online play + chat unlock</li>
+                    <li>Priority game updates</li>
+                    <li>Support for home LAN or VPS hosting</li>
+                    <li>Rules PDF/TXT exports for tournaments</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <h2>Need help hosting games?</h2>
+        <div class="grid two">
+            <div class="card">
+                <h3>Play on your home WiFi</h3>
+                <p>Launch netplay on one computer, share its LAN IP (for example 192.168.1.13:8200), and let up to four family members join from their own laptops or tablets.</p>
+            </div>
+            <div class="card">
+                <h3>Deploy to a VPS</h3>
+                <p>For remote friends, deploy Bishops on an Ubuntu 22.04 VPS (1 vCPU / 2 GB RAM). Point a domain to your server and forward port 8200 for instant public matches.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="rules">
+        <h2>Bishops, The Game - Simple Rules (current build) as of January 14, 2026</h2>
+        <h3>Overview</h3>
+        <p>Four players: White, Grey, Black, Pink. The board is 12x12 with a central 8x8 play area (the green frame). The four 2x2 corner blocks are out of play. Turns go clockwise: White, Grey, Black, Pink.</p>
+
+        <h3>Setup and play</h3>
+        <p>On your turn, you make one normal chess move with your own pieces. Any piece can capture any opposing color. Check and checkmate apply. You can put any king in check; you must get out of check on your turn. Castling is allowed in both directions. Pawns move and capture like chess. A pawn promotes when it reaches the far edge of the central 8x8 area in its direction of travel (the side opposite its start). King/Queen swap: On your first turn only, you may swap your king and queen. In the current program, the swap does NOT advance the turn, so you must still make a normal move to pass the turn.</p>
+
+        <h3>Elimination and duel</h3>
+        <p>When a player is checkmated or resigns, that color is eliminated and removed from the board. When only two colors remain, the game becomes a chess duel on the central 8x8 area.</p>
+
+        <h3>Blocked corners (important)</h3>
+        <p>The four 2x2 corner blocks are permanently off limits to all pieces. No piece may enter those squares.</p>
+
+        <h3>Notes about current behavior</h3>
+        <p>The program treats the King/Queen swap as a setup action, not a full move. You keep the turn after swapping and must make a regular move before play passes to the next color.</p>
+        <p>To prevent unauthorized reproduction a minor false rule has been included in this limited copyright edition.</p>
+
+        <p><a href="https://www.bishopsthegame.com/">https://www.bishopsthegame.com/</a></p>
+        <p>From the owner and inventor Saskatchewan, Canada</p>
+    </section>
+</main>
+
+<footer>
+    &copy; 2025 BishopsTheGame &middot; Contact <a href="mailto:bishops@bishopsthegame.com">bishops@bishopsthegame.com</a>
+</footer>
+<script>
+(function(){
+    const container = document.querySelector('[data-lobby-embed]');
+    if (!container) return;
+    const iframe = container.querySelector('iframe');
+    const link = container.querySelector('[data-role="lobby-link"]');
+    const launch = container.querySelector('[data-role="lobby-launch"]');
+    const origin = (container.getAttribute('data-lobby-origin') || 'https://play.bishopsthegame.net').replace(/\/$/, '');
+    const room = encodeURIComponent(container.getAttribute('data-room') || 'main');
+    const previewUrl = `${origin}/static/index_v3.html?room=${room}&embed=1`;
+    const fullUrl = `${origin}/static/index_v3.html?room=${room}`;
+    if (iframe) iframe.src = previewUrl;
+    if (link) link.href = fullUrl;
+    if (launch) {
+        launch.addEventListener('click', () => window.open(fullUrl, '_blank', 'noopener'));
+    }
+})();
+</script>
+</body>
+</html>

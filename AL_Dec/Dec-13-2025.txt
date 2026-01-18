@@ -1,0 +1,14 @@
+Summary (Dec 13, 2025)
+
+- Added session-aware login flow in opt/netplay/netplay/static/index_v3.html: shows “Enter Game” when a Supabase session exists, email + magic link when not, and remembers last email.
+- Fixed Supabase init timing: moved createClient into the main module script and guarded auth calls so window.supabase is ready before checkAuthStatus runs.
+- Deployment issue on server: git pull in ~/deploy.sh failed because index_v3.html had local edits. Resolved by resetting/stashing in /home/adminuser/deployment/bishops-game, pulling latest main, then rerunning ~/deploy.sh.
+- Current live version: commit 434a83a (“Guard auth when Supabase is not ready”). After deploy, use hard reload or append ?v=31 to bypass cache.
+
+Deploy steps used:
+1) ssh adminuser@74.208.171.115
+2) cd /home/adminuser/deployment/bishops-game
+   git reset --hard origin/main  # discard local edit blocking pull
+   git pull origin main
+3) ~/deploy.sh
+4) exit

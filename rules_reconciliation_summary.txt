@@ -1,0 +1,49 @@
+Bishops Rules Comparison and Reconciled Rules (Dec 2025)
+
+Matches (written rules align with code):
+- White moves first; turns rotate clockwise when not forced by check.
+- Any opposing color can capture any piece; mixed-color checks and checkmates are allowed.
+- Pawns move forward and capture diagonally; pawns can give check/checkmate.
+- King/Queen swap is allowed on the first move (turn handling differs; see differences).
+- Kings can use their own 2x2 home corner as a sanctuary and bishops can promote there.
+- Resignation is supported and removes a color from the board.
+- When two colors remain, the game becomes a chess duel (mechanics differ; see differences).
+
+Differences (written rules vs current code):
+- K/Q swap: written says it consumes the turn; code treats it as setup and does NOT advance the turn.
+- Castling: written says not allowed; code allows short-game castling and standard castling in the duel.
+- Pawn promotion: written says promote on the 8th rank; code promotes when a pawn enters the inner 8x8 edge.
+- Corner immunity: written ties immunity to both bishops surviving; code requires king in corner AND at least 3 queens on board.
+- Short game end: written allows ending after one elimination; code continues until two remain.
+- Two-player transition: written implies continued board play; code teleports to a standard chess duel with full pieces.
+- Code includes extra operational controls (Force Duel, Reset, AI controls) not in the written rules.
+
+Reconciled Rules (current code behavior):
+
+1) Four-player phase
+- White moves first. Turns rotate clockwise unless a color is in check; a check forces that color to move next.
+- Any opposing color may be captured. Mixed-color pieces can be used to give check or checkmate.
+- King/Queen swap is allowed on the first move and does NOT advance the turn (same color moves again).
+- Short-game castling is allowed (two-square king move with rook), subject to normal no-through-check rules.
+- Pawns move forward (per color orientation) and capture diagonally.
+- Edge-pawn capture restriction applies on the first round.
+- Pawns promote on entering the inner 8x8 edge (auto-queen).
+
+2) Corner sanctuary
+- Each color has a 2x2 home corner.
+- On a king's first entry into its home corner, any surviving bishops promote to queens.
+- While the king stays in the corner, immunity applies only if at least 3 friendly queens remain.
+- If queens drop to 1 or 0, the king must exit the corner on its next move if a legal exit exists; otherwise it may wait.
+
+3) Elimination and resign
+- A color is eliminated if its king is checkmated or captured.
+- Players may resign and be removed.
+- The game continues until exactly two colors remain.
+
+4) Duel phase (two players remaining)
+- The game teleports to a standard chess duel on the central 8x8.
+- Standard chess rules apply, including castling and en passant.
+- White moves first in the duel.
+
+5) Notes
+- Force Duel, Reset, AI controls are operator controls, not core rules.

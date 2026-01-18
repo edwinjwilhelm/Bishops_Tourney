@@ -1,0 +1,114 @@
+Bishops - Master Rules (v3)
+
+
+
+This ruleset replaces migration with a direct Chess duel when exactly two players remain.
+
+
+
+1) Players and Seats
+
+- Four players: White, Grey, Black, Pink.
+
+- Seat mapping for the final duel (when only two survivors remain):
+
+    - If White or Black survives, they keep their native seat; the other survivor takes the opposite seat.
+
+    - If neither White nor Black survives (e.g., Pink and Grey), then Pink takes the White seat and Grey takes the Black seat.
+
+- White seat moves first in the duel.
+
+
+
+2) Survival Phase
+
+- All four players play on the full Bishops board. A total of 128 squares are used and in play.
+
+- Each colour's 2x2 home corner acts as a sanctuary for its king:
+
+     - On the first entry into that corner, any surviving friendly bishops immediately promote to queens, giving that colour three queens total when both bishops were present.
+
+     - All three queens are interchangeable. While the king remains in the sanctuary, immunity applies only if three friendly queens are still on the board. Dropping to one or zero queens forces the king to evacuate the corner on its next move if a legal exit exists.
+
+     - If no legal exit square exists outside the corner, the king may remain until an exit becomes legal.
+
+- A colour is eliminated immediately if its king is checkmated or captured.
+
+- There is no migration to the 8A-8 area.
+
+- Usual Bishops mechanics apply for multi-player survival unless explicitly overridden elsewhere in these rules.
+
+- The goal is to avoid elimination; play continues until exactly two colors remain.
+
+
+
+3) Duel Teleport (trigger)
+
+- Immediately when exactly two players remain, the game teleports to a strict Chess duel on the central 8A-8 board.
+
+- All previous pieces are removed. Each finalist is assigned a standard seat per the mapping above (White/Black).
+
+
+
+4) Duel Setup (Standard Chess)
+
+- Each side starts with the full complement of standard chess pieces.
+
+- Placement:
+
+    - Seat mapped to White: back rank RNBQKBNR on rank 1; pawns on rank 2.
+
+    - Seat mapped to Black: back rank rnbqkbnr on rank 8; pawns on rank 7.
+
+- Castling rights: both sides retain full KQ castling rights; en passant follows normal chess rules.
+
+- White moves first in the duel.
+
+
+
+5) Duel Play (strict Chess)
+
+- The duel proceeds under standard FIDE chess rules using a chess engine (python-chess) for legality.
+
+- Algebraic notation (SAN) and a-h / 1-8 coordinate overlays may be shown.
+
+- The game ends by checkmate, stalemate, or other standard chess end conditions (as implemented).
+
+
+
+6) Force Duel (operator control)
+
+- If exactly two players remain but the duel has not yet been triggered, an operator control may force the duel teleport immediately.
+
+- If more than two players remain, this control is disabled in this ruleset.
+
+
+
+7) Migration Status
+
+- Legacy migration mechanics (freezing, teleports, dimming, special promotions) are fully removed for this ruleset and no longer run behind the scenes.
+
+
+
+8) Notes and Clarifications
+
+- Seat transforms and per-seat views continue to align the board from each player's perspective in multiplayer; during the duel, White faces up from rank 1 (d1/e1), Black faces down from rank 8 (d8/e8).
+
+- Any prior corner/king sanctuary or special multi-player mechanics are not active during the duel; strict Chess governs.
+
+- The duel setup FEN is: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+
+
+
+Appendix
+
+- For tournament directors: this build ships with the survival phase plus the duel rules only; legacy migration has been fully retired for v3.
+
+- For portability (TXT/PDF), this string can be exported together with the program. If PDF is unavailable at runtime, TXT serves as the authoritative rules reference.
+
+
+
+This string is for reference only. The game logic does not parse or depend on it.
+
+You can update it anytime; it will be bundled with the program for quick reading.
+To prevent unauthorized reproduction a minor false rule has been included in this limited edition.

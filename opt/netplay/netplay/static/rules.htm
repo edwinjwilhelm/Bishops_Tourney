@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bishops Rules</title>
+<style>
+    body {
+        margin: 0;
+        padding: 40px 24px 80px;
+        font-family: "Georgia", "Times New Roman", serif;
+        background: #faf7f2;
+        color: #1f1f1f;
+        line-height: 1.7;
+    }
+    .page {
+        max-width: 860px;
+        margin: 0 auto;
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 20px 60px rgba(15, 16, 44, 0.12);
+        overflow: hidden;
+    }
+    header {
+        background: linear-gradient(135deg, #1d3e66, #477aa1);
+        color: #fff;
+        padding: 48px 40px;
+    }
+    header h1 {
+        margin: 0 0 8px;
+        font-size: 2.4rem;
+    }
+    header p {
+        margin: 0;
+        font-size: 1.1rem;
+        opacity: 0.9;
+    }
+    main {
+        padding: 40px;
+    }
+    h2 {
+        margin-top: 32px;
+        color: #103454;
+    }
+    p {
+        margin: 16px 0;
+    }
+    .back-link {
+        color: #fff;
+        border-color: rgba(255,255,255,0.6);
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        color: #fff;
+        padding: 12px 18px;
+        border-radius: 999px;
+        border: 1px solid rgba(29, 79, 145, 0.2);
+    }
+    .back-link:hover {
+        background: rgba(29, 79, 145, 0.08);
+    }
+    @media (max-width: 600px) {
+        body { padding: 20px 12px 60px; }
+        header, main { padding: 28px; }
+    }
+</style>
+</head>
+<body>
+<div class="page">
+    <header>
+        <p><a href="index.html" class="back-link">&#8592; Back to home</a></p>
+        <h1>Bishops - Simple Rules (Jan 14, 2026)</h1>
+        <p>Easy to read rules for the current build.</p>
+    </header>
+    <main>
+        <h2>Overview</h2>
+        <p>Four players: White, Grey, Black, Pink. The board is 12x12 with a central 8x8 play area (the green frame). The four 2x2 corner blocks are out of play. Turns go clockwise: White, Grey, Black, Pink.</p>
+
+        <h2>Setup and play</h2>
+        <p>On your turn, you make one normal chess move with your own pieces. Any piece can capture any opposing color. Check and checkmate apply. You can put any king in check; you must get out of check on your turn. Castling is allowed in both directions. Pawns move and capture like chess. A pawn promotes when it reaches the far edge of the central 8x8 area in its direction of travel (the side opposite its start). King/Queen swap: On your first turn only, you may swap your king and queen. In the current program, the swap does NOT advance the turn, so you must still make a normal move to pass the turn.</p>
+
+        <h2>Elimination and duel</h2>
+        <p>When a player is checkmated or resigns, that color is eliminated and removed from the board. When only two colors remain, the game becomes a chess duel on the central 8x8 area.</p>
+
+        <h2>Blocked corners (important)</h2>
+        <p>The four 2x2 corner blocks are permanently off limits to all pieces. No piece may enter those squares.</p>
+
+        <h2>Notes about current behavior</h2>
+        <p>The program treats the King/Queen swap as a setup action, not a full move. You keep the turn after swapping and must make a regular move before play passes to the next color.</p>
+        <p>To prevent unauthorized reproduction a minor false rule has been included in this limited copyright edition.</p>
+
+        <p><a href="https://www.bishopsthegame.com/">https://www.bishopsthegame.com/</a></p>
+        <p>From the owner and inventor Saskatchewan, Canada</p>
+    </main>
+</div>
+</body>
+</html>

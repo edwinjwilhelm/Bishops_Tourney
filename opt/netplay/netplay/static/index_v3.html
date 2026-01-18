@@ -1,0 +1,3066 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>Bishops Netplay</title>
+  <style>
+    #accessGate {
+      position: fixed; inset: 0; background: rgba(6,9,16,0.96); color:#e8e8e8; display:flex; align-items:center; justify-content:center; z-index:9999; padding:24px; text-align:center; font-family: system-ui, Arial; flex-direction:column; gap:12px;
+    }
+    #accessGate a { color:#64a0ff; }
+    :root { --chrome:#121417; --panel:#0f141b; --line:#3b4b63; --btn:#2d3b52; --text:#e8e8e8; }
+    html, body { height:100%; }
+    body { margin:0; font-family: system-ui, Arial; background:var(--chrome); color:var(--text); overflow:hidden; }
+    #layout { display:flex; height:100vh; width:100vw; box-sizing:border-box; }
+    #boardWrap { flex:1; display:flex; align-items:center; justify-content:center; padding:8px; padding-top:18px; min-width:240px; position:relative; }
+    #board { background:#1f2a38; border:1px solid var(--line); image-rendering:pixelated; display:block; }
+    /* Label that shows YOU / ACTIVE / VIEW near the board */
+    #underLabel { display:none; font-size:12px; background:rgba(0,0,0,0.35); padding:4px 6px; border-radius:4px; margin-bottom:8px; margin-top:-4px; text-align:left; }
+    #sidebarLeft { flex:0 0 260px; width:260px; min-width:260px; max-width:260px; border-right:1px solid var(--line); background:var(--panel); padding:5px; box-sizing:border-box; overflow-x:hidden; overflow-y:hidden; max-height:100vh; display:flex; flex-direction:column; gap:4px; }
+    #sidebarRight { flex:0 0 320px; width:320px; min-width:320px; max-width:320px; border-left:1px solid var(--line); background:var(--panel); padding:8px; box-sizing:border-box; overflow-x:hidden; overflow-y:hidden; }
+    .row { display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
+    .stack { display:flex; flex-direction:column; gap:4px; }
+    button { padding:6px 10px; background:var(--btn); color:var(--text); border:1px solid #4d6286; cursor:pointer; }
+    button:disabled { opacity:0.55; cursor:not-allowed; }
+    select, input[type=number], input[type=text] { padding:4px; background:#1b2430; color:var(--text); border:1px solid var(--line); }
+    input[type=number] { width:60px; }
+    input[type=text] { width:100%; box-sizing:border-box; }
+    input[readonly] { opacity:0.8; cursor:text; }
+    .muted { color:#9db2cf; }
+    .btn-small { padding:3px 6px; font-size:11px; }
+    .move-log-panel { border:1px solid var(--line); border-radius:4px; padding:6px; background:rgba(0,0,0,0.12); }
+    .move-log-header { font-size:11px; font-weight:600; color:#cfd8eb; margin-bottom:4px; }
+    .move-log-body { max-height:140px; overflow:auto; font-size:11px; white-space:pre-wrap; margin:0; }
+    .wide { flex:1 1 auto; }
+    .card { border:1px solid var(--line); border-radius:6px; padding:8px; background:rgba(0,0,0,0.12); margin-bottom:8px; }
+    .mutedInput { font-size:12px; color:#cfd8eb; }
+    .roomListWrap { border:1px solid rgba(255,255,255,0.08); border-radius:6px; margin-top:4px; padding:4px; background:rgba(0,0,0,0.18); max-height:100px; overflow:hidden; }
+    #sidebarLeft .card { padding:4px; margin-bottom:4px; }
+    #sidebarLeft .btn-small { padding:1px 4px; font-size:10px; }
+    #sidebarLeft #advPanel summary { font-size:10px; }
+    #sidebarLeft #advPanel .row,
+    #sidebarLeft #advPanel label,
+    #sidebarLeft #advPanel .move-log-header,
+    #sidebarLeft #advPanel .move-log-body { font-size:10px; }
+    #sidebarLeft #advPanel .move-log-body { max-height:70px; }
+    #chatPanel { margin-top:auto; }
+    #chatLog { height:96px; overflow:auto; font-size:11px; background:rgba(0,0,0,0.18); border:1px solid var(--line); border-radius:4px; padding:6px; }
+    .roomList { display:flex; flex-direction:column; gap:6px; }
+    .roomRow { display:flex; gap:4px; align-items:center; border:1px solid rgba(255,255,255,0.08); border-radius:6px; padding:4px; background:rgba(0,0,0,0.15); }
+    .roomRow.active { border-color:#64a0ff; background:rgba(100,160,255,0.06); }
+    .roomRow.suggested { border-color:#41ffb2; background:rgba(65,255,178,0.08); box-shadow:0 0 6px rgba(65,255,178,0.35); }
+    .roomMeta { flex:1 1 auto; font-size:11px; line-height:1.35; }
+    .roomMeta strong { display:block; font-size:12px; color:#fff; }
+    .roomActions { display:flex; gap:6px; flex-wrap:wrap; }
+    .roomActions button { padding:3px 6px; font-size:11px; }
+    details { background:rgba(0,0,0,0.12); border:1px solid var(--line); border-radius:4px; padding:0 8px 6px; }
+    details summary { cursor:pointer; list-style:none; padding:8px 0 4px; font-weight:600; color:var(--text); }
+    details summary::-webkit-details-marker { display:none; }
+    details[open] { padding-bottom:8px; }
+    details .row { margin-top:6px; }
+    .tabBar { display:flex; gap:4px; margin:4px 0 6px; }
+    .tabBtn { flex:1 1 0; padding:4px 6px; font-size:11px; background:var(--btn); color:var(--text); border:1px solid #4d6286; cursor:pointer; }
+    .tabBtn.active { background:#3c4b64; border-color:#6b8bc4; font-weight:600; }
+    .tabPane { display:none; flex-direction:column; gap:10px; }
+    .tabPane.active { display:flex; }
+    @keyframes pulseGo { from { opacity:0.45; } to { opacity:1; } }
+    .pulse { animation: pulseGo 0.6s ease-in-out infinite alternate; }
+    body.embedded { background:#04080f; overflow:hidden; }
+    body.embedded #layout { padding:0; height:100vh; }
+    body.embedded #sidebarLeft,
+    body.embedded #sidebarRight { display:none !important; }
+    body.embedded #boardWrap { padding:0; align-items:center; justify-content:center; }
+    body.embedded #board { width:100%; max-width:100%; max-height:100vh; height:auto; }
+    .embedHud { position:absolute; left:50%; bottom:16px; transform:translateX(-50%); display:flex; gap:12px; align-items:center; background:rgba(0,0,0,0.65); color:#fff; padding:8px 18px; border-radius:999px; font-size:13px; box-shadow:0 10px 30px rgba(0,0,0,0.35); z-index:10; }
+    .embedHud button { background:#ffb34d; border:none; color:#2b1600; font-weight:600; padding:6px 14px; border-radius:999px; cursor:pointer; }
+    .embedHud button:hover { opacity:0.9; }
+    #hiddenData { display:none; }
+  </style>
+</head>
+<body>
+  <script src="/static/branding.js?v=51"></script>
+  <script>
+    // Simple cache-bust: force a version param so browsers fetch the latest HTML/JS.
+    (function(){
+      const VERSION_TAG = '51';
+      try {
+        const url = new URL(window.location.href);
+        if (url.searchParams.get('v') !== VERSION_TAG) {
+          url.searchParams.set('v', VERSION_TAG);
+          window.location.replace(url.toString());
+        }
+      } catch (_) {
+        /* ignore */
+      }
+    })();
+  </script>
+    <div id="layout">
+    <aside id="sidebarLeft">
+      <div id="roomPanel" class="stack card">
+        <div class="row" style="gap:6px; align-items:center; justify-content:space-between;">
+          <div class="muted" style="font-size:12px;"><span id="coordHint">Coords 1..N</span></div>
+        </div>
+        <div class="roomListWrap" style="margin-top:6px;">
+          <div id="roomList" class="roomList"></div>
+        </div>
+        <div id="roomStats" class="muted" style="font-size:12px;"></div>
+        <div id="roomMessage" class="muted" style="font-size:11px;"></div>
+      </div>
+      <div id="userPanel" class="stack card">
+        <div id="authStatus" style="display:none; padding:6px 10px; background:rgba(65,255,178,0.1); border:1px solid rgba(65,255,178,0.3); border-radius:4px; margin-bottom:8px; font-size:12px;">
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span>🔒 Signed in</span>
+            <button id="signOut" class="btn-small" style="margin-left:auto; font-size:11px;">Sign Out</button>
+          </div>
+        </div>
+        <div class="row" id="nameRow" style="gap:6px; align-items:center;">
+          <label for="userId" style="min-width:44px;">Name:</label>
+          <input id="userId" type="text" placeholder="ID (letters/numbers)" class="wide" />
+          <button id="saveUserId" class="btn-small">Set</button>
+        </div>
+        <div id="userEcho" class="muted" style="font-size:12px;">Stored locally. PLEASE <a href="https://www.bishopsthegame.com" target="_blank" style="color:#64a0ff;">Sign in for secure seats</a></div>
+        <div style="display:none;"><span id="status" class="muted">Not connected</span></div>
+        <div id="authCta" class="stack" style="gap:6px; margin-top:8px; display:none;">
+          <div class="row" style="gap:6px; align-items:center;">
+            <input id="displayName" type="text" placeholder="Display name (required)" class="wide" />
+          </div>
+          <button id="enterGame" class="btn-small" style="display:none;">Enter Game</button>
+          <div id="loginStatus" class="muted" style="font-size:11px; min-height:14px;"></div>
+        </div>
+      </div>
+      <div class="stack">
+        <div class="row">
+          <label>Seat:</label>
+          <select id="seat">
+            <option>WHITE</option>
+            <option>GREY</option>
+            <option>BLACK</option>
+            <option>PINK</option>
+          </select>
+          <button id="connect">Connect</button>
+          <span id="seatLock" title="Turn lock" class="muted" style="margin-left:auto; font-size:18px; line-height:1">?</span>
+        </div>
+        <div class="row">
+          <div>Turn: <span id="turn" class="muted">?</span></div>
+          <div style="margin-left:auto; display:flex; gap:8px; align-items:center;">
+            <label>View:
+              <select id="view">
+                <option value="AUTO">AUTO</option>
+                <option value="WHITE">WHITE</option>
+                <option value="GREY">GREY</option>
+                <option value="BLACK">BLACK</option>
+                <option value="PINK">PINK</option>
+              </select>
+            </label>
+          </div>
+        </div>
+        <div class="row" style="gap:8px; align-items:center;">
+          <button id="toggleTimer" class="btn-small">Pause Timer</button>
+          <button id="toggleFlag" class="btn-small">Flag Off</button>
+        </div>
+        <div class="row" id="twoStageRow" style="font-size:12px; color:#9db2cf; display:none;">
+          <div id="twoStageStatus">...</div>
+        </div>
+        <div class="row" style="gap:8px; align-items:center;">
+          <span id="err" style="color:#ff9d9d;"></span>
+        </div>
+      </div>
+      <details id="advPanel" class="stack card" style="gap:8px;">
+        <summary class="muted">More controls</summary>
+        <details id="advMoves" data-display="block">
+          <summary class="muted">Manual move (debug)</summary>
+          <div class="row" style="gap:6px 12px; margin-top:6px;">
+            <label>sr <input id="sr" type="number" min="0" max="13" value="12"></label>
+            <label>sc <input id="sc" type="number" min="0" max="13" value="1"></label>
+            <label>er <input id="er" type="number" min="0" max="13" value="11"></label>
+            <label>ec <input id="ec" type="number" min="0" max="13" value="1"></label>
+            <button id="sendMove" class="btn-small" style="margin-left:auto;">Send move</button>
+          </div>
+        </details>
+        <div class="row" style="gap:6px; align-items:center;">
+          <span class="muted" style="font-size:11px;">Replay (local)</span>
+          <button id="btnBack" title="Step back one move" class="btn-small">Back</button>
+          <button id="btnResume" title="Resume live play" class="btn-small">Live</button>
+          <button id="btnFwd" title="Step forward one move" class="btn-small">Forward</button>
+        </div>
+        <div id="moveLogPanel" class="move-log-panel" style="display:none;">
+          <div class="move-log-header">Move Log (local)</div>
+          <pre id="log" class="move-log-body"></pre>
+        </div>
+        <div class="row" style="gap:8px; align-items:center;">
+          <label style="display:flex; align-items:center; gap:6px;">Auto-Elim:
+            <select id="autoElimSel" class="btn-small" style="padding:2px 4px; font-size:12px;">
+              <option value="0">Off</option>
+              <option value="18">18</option>
+              <option value="30">30</option>
+            </select>
+          </label>
+          <span id="autoElimEcho" class="muted" style="font-size:12px;">(server)</span>
+          <span id="autoElimNote" class="muted" style="font-size:12px; display:none;">(Suppressed in 2P)</span>
+        </div>
+      </details>
+      <div id="copyright" class="muted" style="font-size:12px;"></div>
+    </aside>
+    <div id="boardWrap">
+      <div id="boardStack" style="display:flex; flex-direction:column; align-items:center; gap:6px;">
+        <canvas id="board" width="300" height="300"></canvas>
+      </div>
+    </div>
+    <aside id="sidebarRight">
+      <div class="stack">
+        <div id="underLabel" class="muted" style="font-size:12px;">...</div>
+        <div class="tabBar">
+          <button class="tabBtn active" data-tab="play">Play</button>
+          <button class="tabBtn" data-tab="info">Info</button>
+          <button class="tabBtn" data-tab="engine">Engine</button>
+        </div>
+        <div id="tab-play" class="tabPane active">
+          <div class="stack">
+            <strong>Players</strong>
+            <div id="playerModes" class="row" style="gap:8px; flex-wrap:wrap; display:none;">
+              <button data-col="WHITE" class="modeBtn btn-small" style="min-width:88px;" disabled>WH</button>
+              <button data-col="GREY" class="modeBtn btn-small" style="min-width:88px;" disabled>GR</button>
+              <button data-col="BLACK" class="modeBtn btn-small" style="min-width:88px;" disabled>BL</button>
+              <button data-col="PINK" class="modeBtn btn-small" style="min-width:88px;" disabled>PI</button>
+            </div>
+          </div>
+          <div class="stack">
+            <strong>Game Controls</strong>
+            <div id="gameControls" class="row" style="gap:8px; flex-wrap:wrap;">
+              <button id="btnForceDuel" class="btn-small">Force Duel</button>
+              <button id="btnSwapKQ" class="btn-small">Swap K/Q</button>
+              <button id="btnSwitchSeat" class="btn-small" style="display:none;">Switch to Black</button>
+              <button id="btnNewGame" class="btn-small">New Game</button>
+              <button id="btnQuitSeat" class="btn-small">Resign</button>
+              <button id="btnConfirmNewGame" class="btn-small" style="display:none;">Confirm New Game</button>
+              <button id="btnResetRoom" class="btn-small">Reset Room</button>
+            </div>
+            <div id="controlStatus" class="muted" style="font-size:12px;"></div>
+            <div id="duelNotice" class="muted" style="font-size:12px;"></div>
+            <div id="humanReadyBanner" class="row" style="display:none; gap:8px; align-items:center; background:rgba(65,255,178,0.08); border:1px solid rgba(65,255,178,0.35); border-radius:6px; padding:6px;">
+              <span class="muted" style="font-size:12px;" id="humanReadyText">Humans ready. Start live game?</span>
+              <button id="startLiveGame" class="btn-small">Start now</button>
+            </div>
+            <div class="row" id="openTabsRow" style="display:none; gap:8px; align-items:center;">
+              <button id="openAllTabsBtn" class="btn-small">Open all seats in tabs</button>
+            </div>
+          </div>
+          <div id="chatPanel" class="stack card">
+            <strong>Chat</strong>
+            <div id="chatLog" class="muted">Chat appears here...</div>
+            <div class="row" id="chatInputRow" style="gap:6px;">
+              <input id="chatInput" type="text" placeholder="Type a message" />
+              <button id="chatSend" class="btn-small" type="button">Send</button>
+            </div>
+          </div>
+        </div>
+        <div id="tab-info" class="tabPane">
+          <div class="stack card">
+            <strong>Info</strong>
+            <div class="muted" style="font-size:12px;">Rooms are listed on the left.</div>
+          </div>
+          <div class="stack">
+            <strong>Info Links</strong>
+            <div class="row" style="gap:8px;">
+              <button id="openRulesWin" class="btn-small">Open Rules</button>
+              <button id="syncRules" class="btn-small">Sync Rules</button>
+            </div>
+            <div class="row" style="gap:8px;">
+              <button id="openNotesWin" class="btn-small">Open Notes</button>
+              <button id="openQuickRulesWin" class="btn-small">Open Quick Rules</button>
+            </div>
+            <div class="row" style="gap:8px; align-items:center;">
+              <button id="openLibraryWin" class="btn-small">Open Library</button>
+              <button id="refreshLib" class="btn-small">Refresh</button>
+              <div id="libStatus" class="muted" style="font-size:12px;">(0)</div>
+            </div>
+          </div>
+          <div class="stack">
+            <div class="row" style="gap:8px; flex-wrap:wrap;">
+            </div>
+          </div>
+        </div>
+        <div id="tab-engine" class="tabPane">
+          <details id="enginePanel" data-display="block" open>
+            <summary class="muted">Engine tools</summary>
+            <div class="row" style="gap:8px; align-items:center;">
+              <div id="engineVer" class="muted" style="font-size:12px; flex:1 1 auto;">version: (loading)</div>
+              <button id="refreshVer" class="btn-small">Refresh</button>
+              <button id="regenVer" class="btn-small">Regenerate</button>
+            </div>
+            <div id="assetsStatus" class="muted" style="font-size:12px;">assets: (checking)</div>
+            <div id="assetsMount" class="muted" style="font-size:12px;">assets mount: (checking)</div>
+            <div id="engineCountStatus" class="muted" style="font-size:12px;">engine pieces: (unknown)</div>
+            <div class="row" style="gap:8px; align-items:center;">
+              <button id="refreshCount" class="btn-small">Check pieces</button>
+              <button id="newGameBtn" class="btn-small">New Game</button>
+              <button id="newChessBtn" class="btn-small" style="margin-left:auto;">New Chess</button>
+            </div>
+            <div class="row" style="gap:8px; align-items:center;">
+              <button id="repaintTest" class="btn-small">Repaint test</button>
+              <span class="muted" style="font-size:12px;">probe:</span>
+              <img id="imgProbe" src="" alt="probe" style="width:24px; height:24px; border:1px solid var(--line); background:#0a0f15" />
+              <span id="imgProbeStatus" class="muted" style="font-size:12px;">(loading)</span>
+            </div>
+          </details>
+        </div>
+      </div>
+    </aside>
+  </div>
+  <div id="hiddenData">
+    <pre id="log"></pre>
+    <div id="libList"></div>
+  </div>  <script type="module">
+    // Import Supabase client and initialize
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.2/+esm";
+    const COOKIE_DOMAIN = '.bishopsthegame.com';
+    const COOKIE_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
+    const COOKIE_NAME = 'sb-bishops-session';
+    function getCookie(name) {
+      return document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith(name + '='))?.split('=').slice(1).join('=') || null;
+    }
+    const cookieStorage = {
+      getItem(key) {
+        const v = getCookie(key);
+        return v ? decodeURIComponent(v) : null;
+      },
+      setItem(key, value) {
+        document.cookie = `${key}=${encodeURIComponent(value)}; Domain=${COOKIE_DOMAIN}; Path=/; Max-Age=${COOKIE_MAX_AGE}; SameSite=None; Secure`;
+      },
+      removeItem(key) {
+        document.cookie = `${key}=; Domain=${COOKIE_DOMAIN}; Path=/; Max-Age=0; SameSite=None; Secure`;
+      },
+    };
+    const supabase = createClient(
+      "https://wqceqyycatcjggmxunte.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndxY2VxeXljYXRjamdnbXh1bnRlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0NTYyODgsImV4cCI6MjA4MTAzMjI4OH0.j2PW1w32Znhj7qVG37o1vabOIrJ1ZbFj3eQK3F9mf-Q",
+      {
+        auth: {
+          autoRefreshToken: true,
+          persistSession: true,
+          detectSessionInUrl: true,
+          storage: cookieStorage,
+          storageKey: COOKIE_NAME,
+        },
+      }
+    );
+    window.supabase = supabase;
+    // --- URL param helpers for local multi-seat testing ---
+    function candidateBases(){
+      try { if (location && location.origin && location.origin.startsWith('http')) return [location.origin]; } catch {}
+      return ['http://127.0.0.1:8000', 'http://127.0.0.1:8010', 'http://localhost:8000', 'http://localhost:8010'];
+    }
+    function currentBase(){
+      try { if (window.__base) return window.__base; } catch {}
+      const c = candidateBases()[0];
+      try { window.__base = c; } catch {}
+      return c;
+    }
+    async function fetchWithFallback(path, opts){
+      const bases = candidateBases();
+      let lastErr = null; let lastRes = null;
+      for (const b of bases){
+        try {
+          const res = await fetch(b + path, opts || { cache:'no-store' });
+          if (res && res.ok !== undefined){
+            if (res.ok){ try { window.__base = b; } catch{} return res; }
+            // Save response to show error text later
+            lastRes = res;
+          }
+        } catch(e){ lastErr = e; }
+      }
+      if (lastRes) return lastRes;
+      if (lastErr) throw lastErr;
+      // Fallback empty Response-like
+      return new Response(null, { status: 503, statusText: 'Service Unavailable' });
+    }
+    const params = new URLSearchParams(location.search);
+    const chessOnly = ['1','TRUE','YES'].includes((params.get('chess')||'').toUpperCase());
+    const embedMode = (() => {
+      const raw = (params.get('embed') || '').toLowerCase();
+      return raw === '1' || raw === 'true' || raw === 'yes';
+    })();
+    const spectateMode = false;
+    if (embedMode){
+      try { document.body.classList.add('embedded'); } catch {}
+    }
+    function pickParam(name, valid){
+      const v = (params.get(name) || '').toUpperCase();
+      if (!v) return null;
+      return valid && !valid.includes(v) ? null : v;
+    }
+  const ROOM_DEFAULT = 'main';
+    const CACHE_VERSION = '25';
+    const FLAG_CDN_BASE = 'https://flagcdn.com/w80/';
+    const DEFAULT_FLAG_CODE = 'ca';
+    const cornerFlagImages = {
+      WHITE: new Image(),
+      GREY: new Image(),
+      BLACK: new Image(),
+      PINK: new Image(),
+    };
+    const flagCountryByColor = {
+      WHITE: DEFAULT_FLAG_CODE,
+      GREY: DEFAULT_FLAG_CODE,
+      BLACK: DEFAULT_FLAG_CODE,
+      PINK: DEFAULT_FLAG_CODE,
+    };
+    Object.keys(cornerFlagImages).forEach((key) => {
+      cornerFlagImages[key].crossOrigin = 'anonymous';
+      cornerFlagImages[key].src = `${FLAG_CDN_BASE}${DEFAULT_FLAG_CODE}.png`;
+    });
+    const cornerFlagReady = { WHITE: false, GREY: false, BLACK: false, PINK: false };
+    const cornerFlagVariants = {
+      WHITE: { 0: null, 90: null, 180: null, 270: null },
+      GREY: { 0: null, 90: null, 180: null, 270: null },
+      BLACK: { 0: null, 90: null, 180: null, 270: null },
+      PINK: { 0: null, 90: null, 180: null, 270: null },
+    };
+    function buildFlagVariant(img, angle){
+      try {
+        const w = img.naturalWidth || 0;
+        const h = img.naturalHeight || 0;
+        if (!w || !h) return null;
+        const canvas = document.createElement('canvas');
+        const ctx2 = canvas.getContext('2d');
+        if (!ctx2) return null;
+        const rot = angle % 180 !== 0;
+        canvas.width = rot ? h : w;
+        canvas.height = rot ? w : h;
+        ctx2.translate(canvas.width / 2, canvas.height / 2);
+        ctx2.rotate((angle * Math.PI) / 180);
+        ctx2.drawImage(img, -w / 2, -h / 2);
+        const out = new Image();
+        out.src = canvas.toDataURL();
+        return out;
+      } catch {
+        return null;
+      }
+    }
+    function normalizeCountryCode(value){
+      if (!value) return '';
+      const code = String(value).toLowerCase().replace(/[^a-z]/g, '');
+      if (!code) return '';
+      return code.slice(0, 2);
+    }
+    function setCornerFlagForColor(color, code){
+      const normalized = normalizeCountryCode(code) || DEFAULT_FLAG_CODE;
+      if (flagCountryByColor[color] === normalized) return;
+      flagCountryByColor[color] = normalized;
+      const img = cornerFlagImages[color];
+      if (!img) return;
+      cornerFlagReady[color] = false;
+      img.src = `${FLAG_CDN_BASE}${normalized}.png`;
+    }
+    let seatCountries = {};
+    function updateSeatCountryFlags(){
+      const map = seatCountries || {};
+      ['WHITE','GREY','BLACK','PINK'].forEach((color) => {
+        let code = normalizeCountryCode(map[color] || '');
+        const seatKey = String(connectedSeat || '').toUpperCase();
+        if (!code && profileCountry && seatKey === color){
+          code = profileCountry;
+        }
+        if (!code){
+          code = flagCountryByColor[color] || DEFAULT_FLAG_CODE;
+        }
+        setCornerFlagForColor(color, code);
+      });
+    }
+    Object.keys(cornerFlagImages).forEach((key) => {
+      const img = cornerFlagImages[key];
+      img.onload = () => {
+        cornerFlagReady[key] = true;
+        cornerFlagVariants[key][0] = img;
+        cornerFlagVariants[key][90] = buildFlagVariant(img, 90);
+        cornerFlagVariants[key][180] = buildFlagVariant(img, 180);
+        cornerFlagVariants[key][270] = buildFlagVariant(img, 270);
+        try { if (window.__lastState) drawBoard(window.__lastState); } catch {}
+      };
+      img.onerror = () => { cornerFlagReady[key] = false; };
+    });
+    function sanitizeUserId(raw){
+      return (raw || '').replace(/[^a-zA-Z0-9_-]+/g, '').slice(0, 32);
+    }
+    function randomUserId(){
+      return '';
+    }
+    function loadUserId(){
+      const fromUrl = sanitizeUserId(params.get('user'));
+      if (fromUrl) return fromUrl;
+      return '';
+    }
+    function normalizeRoomId(val){
+      if (!val) return ROOM_DEFAULT;
+      const slug = String(val).toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+      return slug || ROOM_DEFAULT;
+    }
+    const urlUserParam = sanitizeUserId(params.get('user') || '');
+    const seatSel = document.getElementById('seat');
+    const connectBtn = document.getElementById('connect');
+    const statusEl = document.getElementById('status');
+    const turnEl = document.getElementById('turn');
+    const toggleTimerBtn = document.getElementById('toggleTimer');
+    const toggleFlagBtn = document.getElementById('toggleFlag');
+    const errEl = document.getElementById('err');
+    const logEl = document.getElementById('log');
+    const moveLogPanel = document.getElementById('moveLogPanel');
+    const roomSel = null; // roomSelect removed; room switching via room list
+    const roomRefreshBtn = document.getElementById('roomRefresh');
+    const roomStats = document.getElementById('roomStats');
+    const roomMessage = document.getElementById('roomMessage');
+    const roomShareInput = document.getElementById('roomShareLink');
+    const copyRoomLinkBtn = document.getElementById('copyRoomLink');
+    const roomList = document.getElementById('roomList');
+  const userIdInput = document.getElementById('userId');
+  const userEcho = document.getElementById('userEcho');
+  const saveUserIdBtn = document.getElementById('saveUserId');
+  const nameRow = document.getElementById('nameRow');
+  const authStatus = document.getElementById('authStatus');
+  const signOutBtn = document.getElementById('signOut');
+  const displayNameInput = document.getElementById('displayName');
+  const displayNameRow = displayNameInput ? displayNameInput.closest('.row') : null;
+    const loginEmailInput = null;
+    const loginBtn = null;
+    const enterGameBtn = document.getElementById('enterGame');
+    const loginStatus = document.getElementById('loginStatus');
+    const loginRow = null;
+    const accessGate = document.getElementById('accessGate');
+    const gateMessage = document.getElementById('gateMessage');
+    const retryAuthBtn = document.getElementById('retryAuthBtn');
+    const requestLinkBtn = document.getElementById('requestLinkBtn');
+    const humanReadyBanner = document.getElementById('humanReadyBanner');
+    const humanReadyText = document.getElementById('humanReadyText');
+    const startLiveGameBtn = document.getElementById('startLiveGame');
+  const openTabsRow = document.getElementById('openTabsRow');
+  const openAllTabsBtn = document.getElementById('openAllTabsBtn');
+  const openTabsManual = document.getElementById('openTabsManual');
+  const chatLog = document.getElementById('chatLog');
+  const chatInput = document.getElementById('chatInput');
+  const chatSend = document.getElementById('chatSend');
+  const ROOM_STORAGE_KEY = 'bishops_room_id';
+  const LAST_EMAIL_KEY = 'bishops_last_email';
+  const DISPLAY_NAME_KEY = 'bishops_display_name';
+  const DISPLAY_BY_EMAIL_KEY = 'bishops_display_by_email';
+  const COUNTRY_CODE_KEY = 'bishops_country';
+  const NAME_URL = sanitizeUserId(params.get('name') || '');
+  let userId = loadUserId();
+  let profileName = '';
+  let profileCountry = loadCountryCode();
+  let authTokenGlobal = null; // holds the Supabase access token
+  let roomSwitchLocked = false;
+  let currentRoom = normalizeRoomId(params.get('room') || ROOM_DEFAULT);
+  if (NAME_URL){
+    applyUserId(NAME_URL);
+    if (displayNameInput) displayNameInput.value = NAME_URL;
+    saveDisplayName(NAME_URL);
+  } else {
+    applyUserId(userId);
+  }
+    function lockNameInputs(flag){
+      if (displayNameInput) displayNameInput.disabled = !!flag;
+      if (userIdInput) userIdInput.disabled = !!flag;
+      if (saveUserIdBtn) saveUserIdBtn.disabled = !!flag;
+    }
+    function updateNameUi(){
+      if (nameRow) nameRow.style.display = 'flex';
+      if (displayNameRow) displayNameRow.style.display = 'flex';
+    }
+    // Ignore stored room; always start at room 1
+    function applyUserId(nextId){
+      const clean = sanitizeUserId(nextId);
+      userId = clean;
+      if (userIdInput && !urlUserParam){ userIdInput.value = userId; }
+      if (userEcho){ userEcho.textContent = userId ? `User: ${userId}` : 'Enter a name'; }
+      try { updateRoomShareLink(); } catch {}
+      updateAccessGate();
+      return userId;
+    }
+    
+  function setLoginStatus(msg, isError){
+    if (!loginStatus) return;
+    loginStatus.style.color = isError ? '#ff9d9d' : '#9db2cf';
+    loginStatus.textContent = msg || '';
+  }
+  function appendChatLine(payload){
+    if (!chatLog) return;
+    const user = String(payload && payload.user ? payload.user : 'Guest');
+    const seat = String(payload && payload.seat ? payload.seat : '');
+    const text = String(payload && payload.text ? payload.text : '');
+    if (!text) return;
+    const ts = payload && payload.ts ? new Date(payload.ts * 1000) : new Date();
+    const stamp = ts.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const seatTag = seat ? ` [${seat}]` : '';
+    const line = `${stamp} ${user}${seatTag}: ${text}`;
+    const div = document.createElement('div');
+    div.textContent = line;
+    chatLog.appendChild(div);
+    while (chatLog.childNodes.length > 120){
+      chatLog.removeChild(chatLog.firstChild);
+    }
+    chatLog.scrollTop = chatLog.scrollHeight;
+  }
+  function sendChatMessage(){
+    if (!chatInput) return;
+    const text = String(chatInput.value || '').trim();
+    if (!text) return;
+    if (!ws || ws.readyState !== 1){
+      errEl.textContent = 'Not connected';
+      return;
+    }
+    const user = sanitizeUserId(
+      (displayNameInput && displayNameInput.value) ||
+      (userIdInput && userIdInput.value) ||
+      userId || 'Guest'
+    ) || 'Guest';
+    try {
+      ws.send(JSON.stringify({ type: 'chat', payload: { text, user } }));
+    } catch {}
+    chatInput.value = '';
+  }
+    function loadStoredEmail(){
+      try { return localStorage.getItem(LAST_EMAIL_KEY) || ''; } catch { return ''; }
+    }
+    function saveStoredEmail(val){
+      try { localStorage.setItem(LAST_EMAIL_KEY, val || ''); } catch {}
+    }
+    function loadDisplayName(){
+      try { return localStorage.getItem(DISPLAY_NAME_KEY) || ''; } catch { return ''; }
+    }
+    function saveDisplayName(val){
+      try { localStorage.setItem(DISPLAY_NAME_KEY, val || ''); } catch {}
+    }
+    function loadDisplayNameForEmail(email){
+      if (!email) return '';
+      try {
+        const raw = localStorage.getItem(DISPLAY_BY_EMAIL_KEY) || '{}';
+        const map = JSON.parse(raw);
+        return sanitizeUserId(map[email] || '') || '';
+      } catch { return ''; }
+    }
+    function saveDisplayNameForEmail(email, name){
+      if (!email || !name) return;
+      try {
+        const raw = localStorage.getItem(DISPLAY_BY_EMAIL_KEY) || '{}';
+        const map = JSON.parse(raw);
+        map[email] = sanitizeUserId(name);
+        localStorage.setItem(DISPLAY_BY_EMAIL_KEY, JSON.stringify(map));
+      } catch {}
+    }
+    function loadCountryCode(){
+      try { return normalizeCountryCode(localStorage.getItem(COUNTRY_CODE_KEY) || ''); } catch { return ''; }
+    }
+    function saveCountryCode(code){
+      const normalized = normalizeCountryCode(code);
+      try { localStorage.setItem(COUNTRY_CODE_KEY, normalized || ''); } catch {}
+      return normalized;
+    }
+    async function fetchSupabaseCountry(session){
+      try {
+        if (!session || !window.supabase || !session.user || !session.user.id) return '';
+        const { data, error } = await window.supabase
+          .from('profiles')
+          .select('country')
+          .eq('user_id', session.user.id)
+          .maybeSingle();
+        if (error) return '';
+        return normalizeCountryCode(data && data.country ? data.country : '');
+      } catch {
+        return '';
+      }
+    }
+    async function fetchProfile(token){
+      if (!token) return null;
+      try {
+        const res = await fetchWithFallback('/profile', { headers:{ Authorization: `Bearer ${token}` }});
+        if (!res.ok) return null;
+        const data = await res.json().catch(()=>null);
+        if (!data || !data.ok) return null;
+        return {
+          name: data.display_name ? sanitizeUserId(data.display_name) : '',
+          country: data.country ? normalizeCountryCode(data.country) : ''
+        };
+      } catch { return null; }
+    }
+    async function saveProfileName(token, name, country){
+      if (!token || !name) return false;
+      try {
+        const res = await fetchWithFallback('/profile', {
+          method:'POST',
+          headers:{
+            'Content-Type':'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({ display_name: name, country: country || null })
+        });
+        if (!res.ok) return false;
+        const data = await res.json().catch(()=>null);
+        return !!(data && data.ok);
+      } catch { return false; }
+    }
+      if (loginEmailInput){
+        const cachedEmail = loadStoredEmail();
+        if (cachedEmail) loginEmailInput.value = cachedEmail;
+      }
+      if (displayNameInput){
+    const cachedName = urlUserParam || NAME_URL || loadDisplayName();
+    if (cachedName) displayNameInput.value = cachedName;
+      }
+  // If a name is provided via ?name= and no userId is set yet, seed userId from it.
+  if (!userId && NAME_URL){
+    applyUserId(NAME_URL);
+  }
+    function updateAccessGate(){
+      if (!accessGate) return;
+      accessGate.style.display = 'none';
+      updateNameUi();
+    }
+    
+    // Check Supabase authentication status
+    async function checkAuthStatus() {
+      if (gateMessage){ gateMessage.textContent = 'Checking sign-in...'; }
+      if (!window.supabase || !window.supabase.auth) {
+        setLoginStatus('Loading sign-in...', false);
+        setTimeout(checkAuthStatus, 600);
+        return;
+      }
+      try {
+        const { data: { session } } = await window.supabase.auth.getSession();
+        if (session && session.user) {
+          if (gateMessage){ gateMessage.textContent = ''; }
+          // User is authenticated
+          if (authStatus) authStatus.style.display = 'block';
+        if (enterGameBtn) enterGameBtn.style.display = 'inline-block';
+        saveStoredEmail(session.user.email);
+        const supaCountry = await fetchSupabaseCountry(session);
+        if (supaCountry){
+          profileCountry = saveCountryCode(supaCountry);
+          updateSeatCountryFlags();
+        }
+        const email = session.user.email;
+        const storedName = loadDisplayNameForEmail(email) || NAME_URL || '';
+        if (displayNameInput){ displayNameInput.value = storedName || ''; }
+        setLoginStatus(storedName ? 'Signed in. Click Enter Game to get a seat.' : 'Signed in. Missing name in link; request a new link.', !storedName);
+          // Fetch profile name from backend (if available)
+          if (session.access_token){
+            const token = session.access_token;
+            authTokenGlobal = token;
+            updateAccessGate();
+            try {
+              const prof = await fetchProfile(token);
+              const name = prof && prof.name ? prof.name : '';
+              const country = prof && prof.country ? prof.country : '';
+              if (country){
+                profileCountry = saveCountryCode(country);
+                updateSeatCountryFlags();
+              }
+              if (name){
+                profileName = name;
+                if (displayNameInput && !urlUserParam) displayNameInput.value = name;
+                if (!urlUserParam) applyUserId(name);
+                saveDisplayName(name);
+                saveDisplayNameForEmail(email, name);
+                lockNameInputs(true);
+                if (NAME_URL && NAME_URL !== name){
+                  setLoginStatus(`Signed in. Account name is locked to ${name}.`, false);
+                }
+              } else {
+                const candidate = NAME_URL || storedName || '';
+                if (candidate){
+                  const ok = await saveProfileName(token, candidate, profileCountry);
+                  if (ok){
+                    profileName = candidate;
+                    applyUserId(candidate);
+                    if (displayNameInput) displayNameInput.value = candidate;
+                    saveDisplayName(candidate);
+                    saveDisplayNameForEmail(email, candidate);
+                    lockNameInputs(true);
+                    setLoginStatus('Signed in. Name locked to your account.', false);
+                  } else {
+                    setLoginStatus('Name is unavailable. Choose a different name on the landing page and request a new link.', true);
+                    lockNameInputs(false);
+                  }
+                } else {
+                  // No profile and no candidate name: user must go through landing page
+                  lockNameInputs(false);
+                }
+              }
+            } catch (e) {
+              console.warn('Profile lookup failed:', e);
+            }
+            updateAccessGate();
+          } else {
+            authTokenGlobal = null;
+            updateAccessGate();
+          }
+          if (urlUserParam){
+            applyUserId(urlUserParam);
+          }
+          updateAccessGate();
+        } else {
+          if (gateMessage){ gateMessage.textContent = 'Sign in to play. Use your magic link in this browser.'; }
+          // Not authenticated
+          if (authStatus) authStatus.style.display = 'none';
+          if (userIdInput) userIdInput.disabled = false;
+          if (saveUserIdBtn) saveUserIdBtn.disabled = false;
+          if (enterGameBtn) enterGameBtn.style.display = 'none';
+          setLoginStatus('', false);
+          authTokenGlobal = null;
+          profileName = '';
+          updateAccessGate();
+        }
+      } catch (e) {
+        console.error('Error checking auth status:', e);
+        setLoginStatus('Could not check auth right now.', true);
+        authTokenGlobal = null;
+        profileName = '';
+        updateAccessGate();
+      }
+    }
+    
+    // Sign out handler
+    if (signOutBtn) {
+      signOutBtn.onclick = async () => {
+        await window.supabase.auth.signOut();
+        location.reload();
+      };
+    }
+    
+    if (enterGameBtn && connectBtn) {
+      enterGameBtn.onclick = () => { connectBtn.click(); };
+    }
+    if (retryAuthBtn){
+      retryAuthBtn.onclick = () => { checkAuthStatus(); };
+    }
+    
+    // Check auth on load
+    checkAuthStatus();
+    
+    // Listen for auth changes
+    if (window.supabase && window.supabase.auth && window.supabase.auth.onAuthStateChange){
+      window.supabase.auth.onAuthStateChange((event, session) => {
+        if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+          checkAuthStatus();
+        }
+      });
+    }
+    
+    // Start with current userId (already seeded from profile or ?name)
+    applySpectatorMode();
+    let autoRoomSwitchDone = false;
+    window.__room = currentRoom;
+    if (embedMode && seatSel){ seatSel.value = 'WHITE'; }
+    function addRoomToUrl(){
+      try{
+        const url = new URL(location.href);
+        if (!currentRoom || currentRoom === ROOM_DEFAULT){
+          url.searchParams.delete('room');
+        } else {
+          url.searchParams.set('room', currentRoom);
+        }
+        history.replaceState({}, '', url);
+      } catch {}
+    }
+  function buildRoomUrl(roomId){
+    const rid = normalizeRoomId(roomId || ROOM_DEFAULT);
+    try {
+      const url = new URL(location.href);
+      url.searchParams.set('room', rid);
+      url.searchParams.delete('seat');
+      url.searchParams.delete('user');
+      if (CACHE_VERSION){ url.searchParams.set('v', CACHE_VERSION); }
+      return url.toString();
+      } catch {
+        const base = location.origin + location.pathname;
+        const tail = `room=${encodeURIComponent(rid)}&user=${encodeURIComponent(userId)}${CACHE_VERSION ? `&v=${encodeURIComponent(CACHE_VERSION)}` : ''}`;
+        return `${base}?${tail}`;
+      }
+    }
+    function updateRoomShareLink(){
+      if (!roomShareInput) return;
+      roomShareInput.value = buildRoomUrl(currentRoom);
+    }
+    function withRoom(path){
+      const room = encodeURIComponent(currentRoom || ROOM_DEFAULT);
+      return path.includes('?') ? `${path}&room=${room}` : `${path}?room=${room}`;
+    }
+    function fetchRoom(path, opts){
+      return fetchWithFallback(withRoom(path), opts);
+    }
+
+  const cvs = document.getElementById('board');
+  const boardWrap = document.getElementById('boardWrap');
+    const ctx = cvs.getContext('2d');
+    const srIn = document.getElementById('sr');
+    const scIn = document.getElementById('sc');
+    const erIn = document.getElementById('er');
+    const ecIn = document.getElementById('ec');
+    const sendBtn = document.getElementById('sendMove');
+
+  const coordHintEl = document.getElementById('coordHint');
+  let showCoords = true;
+  try {
+    const saved = localStorage.getItem('showCoords');
+    if (saved !== null) showCoords = saved === '1';
+  } catch {}
+  function syncCoordHint(size){
+    if (!coordHintEl) return;
+    coordHintEl.textContent = `Coords ${showCoords ? 'On' : 'Off'} 1..${size}`;
+    coordHintEl.style.cursor = 'pointer';
+    coordHintEl.title = 'Toggle coordinate overlay';
+  }
+  if (coordHintEl){
+    coordHintEl.addEventListener('click', () => {
+      showCoords = !showCoords;
+      try { localStorage.setItem('showCoords', showCoords ? '1' : '0'); } catch {}
+      drawBoard(window.__lastState || null);
+    });
+  }
+
+const quickWhiteBtn = document.getElementById('quickWhite'); 
+const CONTROL_SEATS = ['WHITE','GREY','BLACK','PINK'];
+const SHORT_LABELS = { WHITE: 'WH', GREY: 'GR', BLACK: 'BL', PINK: 'PI' };
+const btnForceDuel = document.getElementById('btnForceDuel');
+const btnSwapKQ = document.getElementById('btnSwapKQ');
+const btnSwitchSeat = document.getElementById('btnSwitchSeat');
+  const btnNewGame = document.getElementById('btnNewGame');
+  const btnConfirmNewGame = document.getElementById('btnConfirmNewGame');
+  const btnQuitSeat = document.getElementById('btnQuitSeat');
+  const btnResetRoom = document.getElementById('btnResetRoom');
+    const NOTES_LINES = [
+      'Corner sanctuaries: entering promotes both bishops to queens; immunity lasts only while three friendly queens survive.',
+      'First-round edge pawn captures are disallowed across all colors.',
+      'Force duel switches straight to the chess endgame when only two colors remain.',
+      'Resign removes your color from the board and releases your seat.',
+    ];
+    const QUICK_RULE_LINES = [
+      'Board: 12x12 with an 8x8 center; four 2x2 home corners (W, G, B, P).',
+      'Opening: edge pawns cannot capture opposite edge pawns in the first round.',
+      'Two-player endgame: all non-king pieces must stay inside the 8x8; kings outside must move toward it immediately.',
+      'Checkmate in duel play eliminates that color exactly like FIDE chess.',
+    ];
+    let libItemsCache = [];
+  let ws;
+  let connectedSeat = null;
+  let duelSeatMap = {};
+  // local client state
+
+  function applySpectatorMode(){
+    if (spectateMode){
+      if (seatSel){ seatSel.disabled = true; seatSel.value = 'VIEW'; }
+      if (connectBtn){ connectBtn.textContent = 'Spectate'; }
+      if (userEcho){ userEcho.textContent = 'Spectator (read-only view).'; }
+    } else {
+      if (seatSel){ seatSel.disabled = false; }
+      if (connectBtn){ connectBtn.textContent = 'Connect'; }
+    }
+    if (roomSel){ roomSel.disabled = roomSwitchLocked && !spectateMode; }
+  }
+  if (saveUserIdBtn){
+    saveUserIdBtn.addEventListener('click', ()=>{
+      applyUserId(userIdInput && userIdInput.value);
+    });
+  }
+  if (userIdInput){
+    userIdInput.addEventListener('change', ()=> applyUserId(userIdInput.value));
+    userIdInput.addEventListener('blur', ()=> applyUserId(userIdInput.value));
+  }
+  // Tab switching for right sidebar
+  (function(){
+    const tabs = Array.from(document.querySelectorAll('.tabBtn'));
+    const panes = new Map();
+    Array.from(document.querySelectorAll('.tabPane')).forEach(p=> panes.set(p.id.replace('tab-',''), p));
+    function activate(tabName){
+      tabs.forEach(btn=>{
+        const t = btn.getAttribute('data-tab');
+        btn.classList.toggle('active', t === tabName);
+      });
+      panes.forEach((pane, name)=>{
+        pane.classList.toggle('active', name === tabName);
+      });
+    }
+    tabs.forEach(btn=>{
+      btn.addEventListener('click', ()=> activate(btn.getAttribute('data-tab')));
+    });
+    activate('play');
+  })();
+
+  let roomsCache = [];
+  let roomDisplayNames = new Map();
+  function currentRoomInfo(){
+    try { return (roomsCache || []).find(r => r && r.room_id === currentRoom) || null; } catch { return null; }
+  }
+  function firstOpenRoomId(excludeCurrent = false){
+    for (const room of roomsCache){
+      const taken = Array.isArray(room.taken) ? room.taken.length : 0;
+      const open = Math.max(0, CONTROL_SEATS.length - taken);
+      if (open > 0 && (!excludeCurrent || room.room_id !== currentRoom)){
+        return room.room_id;
+      }
+    }
+    return null;
+  }
+  function updateRoomStatsDisplay(room){
+    if (!roomStats) return;
+    if (!room){
+      const name = roomDisplayNames.get(currentRoom) || `Room ${currentRoom}`;
+      roomStats.textContent = name;
+      return;
+    }
+    const taken = Array.isArray(room.taken) ? room.taken.length : 0;
+    const moves = typeof room.moves_played === 'number' ? room.moves_played : null;
+    const label = roomDisplayNames.get(room.room_id) || room.room_id || currentRoom;
+          const aiNote = '';
+    roomStats.innerHTML = `<strong>${escapeHtml(label)}</strong>: ${taken}/${CONTROL_SEATS.length} seats filled${moves !== null ? ` | ${moves} moves` : ''}${aiNote ? ` | ${aiNote}` : ''}`;
+    const header = document.getElementById('status');
+    if (header){ header.textContent = `${(label || currentRoom)} - ${taken}/${CONTROL_SEATS.length}`; }
+  }
+  
+function renderRoomsFromCache(){
+    const map = new Map();
+    roomsCache.forEach(r => {
+      if (r && r.room_id){ map.set(r.room_id, r); }
+    });
+    if (!map.has(currentRoom)){
+      map.set(currentRoom, { room_id: currentRoom, label: currentRoom, taken: [], spectators: 0 });
+    }
+    function numericId(room){
+      const rid = (room.room_id || '').toLowerCase();
+      if (rid === 'main') return 1;
+      const m = rid.match(/^table-(\d+)$/);
+      if (m) return parseInt(m[1], 10);
+      const idNum = parseInt(room.room_id, 10);
+      if (!Number.isNaN(idNum)) return idNum;
+      const lblNum = parseInt((room.label || '').replace(/[^0-9]/g, ''), 10);
+      return Number.isNaN(lblNum) ? null : lblNum;
+    }
+    const itemsAll = Array.from(map.values()).sort((a,b)=>{
+      const na = numericId(a);
+      const nb = numericId(b);
+      if (na !== null && nb !== null){
+        return na - nb;
+      }
+      if (na !== null) return -1;
+      if (nb !== null) return 1;
+      const la = (a.room_id || '').toLowerCase();
+      const lb = (b.room_id || '').toLowerCase();
+      if (la < lb) return -1;
+      if (la > lb) return 1;
+      return 0;
+    });
+    roomDisplayNames = new Map();
+    itemsAll.forEach((room, idx)=>{
+      const n = numericId(room);
+      const name = n !== null ? `Room ${n}` : `Room ${idx + 1}`;
+      roomDisplayNames.set(room.room_id, name);
+    });
+    const displayItems = itemsAll.filter(room => numericId(room) === 1);
+    const items = displayItems.length ? displayItems : itemsAll;
+    // roomSelect removed; room switching happens via the room list buttons
+    let firstAvailable = null;
+    items.forEach(room => {
+      const taken = Array.isArray(room.taken) ? room.taken.length : 0;
+      const open = Math.max(0, CONTROL_SEATS.length - taken);
+      if (!firstAvailable && open > 0){
+        firstAvailable = room;
+      }
+    });
+    const currentEntry = map.get(currentRoom);
+    const currentOpen = currentEntry ? Math.max(0, CONTROL_SEATS.length - (Array.isArray(currentEntry.taken) ? currentEntry.taken.length : 0)) : CONTROL_SEATS.length;
+    if (!autoRoomSwitchDone && currentEntry && currentOpen === 0 && firstAvailable && firstAvailable.room_id !== currentRoom){
+      autoRoomSwitchDone = true;
+      if (roomMessage){
+        const curName = roomDisplayNames.get(currentEntry.room_id) || currentEntry.room_id || currentRoom;
+        const nextName = roomDisplayNames.get(firstAvailable.room_id) || firstAvailable.room_id;
+        roomMessage.textContent = `${curName} is full. Switching you to ${nextName}.`;
+      }
+      setTimeout(()=> setRoom(firstAvailable.room_id, { force: true }), 50);
+    } else if (roomMessage){
+      if (!firstAvailable){
+        roomMessage.textContent = 'All tables are full. Please wait for an open seat.';
+      } else if (currentEntry && currentOpen === 0){
+        const curName = roomDisplayNames.get(currentEntry.room_id) || currentEntry.room_id || currentRoom;
+        const nextName = roomDisplayNames.get(firstAvailable.room_id) || firstAvailable.room_id;
+        roomMessage.textContent = `${curName} is full. Join ${nextName}.`;
+      } else {
+        roomMessage.textContent = '';
+      }
+    }
+    if (roomList){
+      roomList.innerHTML = '';
+      if (!items.length){
+        const empty = document.createElement('div');
+        empty.className = 'muted';
+        empty.style.fontSize = '12px';
+        empty.textContent = 'No rooms found.';
+        roomList.appendChild(empty);
+      } else {
+        items.forEach(room => {
+      const taken = Array.isArray(room.taken) ? room.taken.length : 0;
+      const spec = 0;
+      const open = Math.max(0, CONTROL_SEATS.length - taken);
+          const row = document.createElement('div');
+          const isSuggested = !!firstAvailable && firstAvailable.room_id === room.room_id && currentEntry && currentOpen === 0 && firstAvailable.room_id !== currentRoom;
+          row.className = `roomRow${room.room_id === currentRoom ? ' active' : ''}${isSuggested ? ' suggested' : ''}`;
+          const meta = document.createElement('div');
+          meta.className = 'roomMeta';
+          const aiNote = '';
+          const name = roomDisplayNames.get(room.room_id) || room.room_id;
+          meta.innerHTML = `<strong>${escapeHtml(name)}</strong><span>Players ${taken}/${CONTROL_SEATS.length}</span>${aiNote ? `<span class="muted">${aiNote}</span>` : ''}`;
+          const actions = document.createElement('div');
+          actions.className = 'roomActions';
+          const joinBtn = document.createElement('button');
+          joinBtn.className = 'btn-small';
+          const autoAssign = !spectateMode;
+          const locked = (roomSwitchLocked && !spectateMode);
+          if (autoAssign){
+            joinBtn.textContent = room.room_id === currentRoom ? 'Current' : 'Auto';
+            joinBtn.disabled = true;
+          } else {
+            joinBtn.textContent = locked ? 'Locked' : (room.room_id === currentRoom ? 'Current' : 'Join');
+            joinBtn.disabled = locked || room.room_id === currentRoom;
+            joinBtn.addEventListener('click', ()=> setRoom(room.room_id));
+          }
+          actions.appendChild(joinBtn);
+          const openBtn = document.createElement('button');
+          openBtn.className = 'btn-small';
+          openBtn.textContent = 'Open';
+          openBtn.addEventListener('click', ()=>{
+            const link = buildRoomUrl(room.room_id);
+            window.open(link, '_blank', 'noopener');
+          });
+          actions.appendChild(openBtn);
+          const copyBtn = document.createElement('button');
+          copyBtn.className = 'btn-small';
+          copyBtn.textContent = 'Copy link';
+          copyBtn.addEventListener('click', async ()=>{
+            const link = buildRoomUrl(room.room_id);
+            const reset = ()=> setTimeout(()=> copyBtn.textContent = 'Copy link', 1400);
+            if (!navigator.clipboard){
+              window.prompt('Room link', link);
+              reset();
+              return;
+            }
+            try {
+              await navigator.clipboard.writeText(link);
+              copyBtn.textContent = 'Copied!';
+            } catch {
+              copyBtn.textContent = 'Copy failed';
+            }
+            reset();
+          });
+          actions.appendChild(copyBtn);
+          row.appendChild(meta);
+          row.appendChild(actions);
+          roomList.appendChild(row);
+        });
+      }
+    }
+    updateRoomStatsDisplay(map.get(currentRoom));
+  }
+  async function refreshRooms(showStatus = true){
+    if (showStatus && roomMessage) roomMessage.textContent = 'Loading rooms...';
+    try {
+      const res = await fetchWithFallback('/rooms', { cache:'no-store' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      roomsCache = (data && data.ok && Array.isArray(data.rooms)) ? data.rooms : [];
+      renderRoomsFromCache();
+      if (roomMessage) roomMessage.textContent = '';
+    } catch (err) {
+      if (roomMessage) roomMessage.textContent = 'Unable to load rooms.';
+      renderRoomsFromCache();
+    }
+  }
+  function setRoom(nextRoom, opts){
+    if (roomSwitchLocked && !spectateMode) {
+      if (roomMessage) roomMessage.textContent = 'Already connected ? disconnect before switching rooms.';
+      return;
+    }
+    const normalized = normalizeRoomId(nextRoom);
+    if (normalized === currentRoom && !(opts && opts.force)){
+      renderRoomsFromCache();
+      updateRoomShareLink();
+      return;
+    }
+    currentRoom = normalized;
+    window.__room = normalized;
+      try { localStorage.setItem(ROOM_STORAGE_KEY, normalized); } catch {}
+    // roomSelect removed; no dropdown to update
+    addRoomToUrl();
+    updateRoomShareLink();
+    renderRoomsFromCache();
+    if (!opts || opts.reconnect !== false){
+      try { if (ws) ws.close(); } catch {}
+      connectedSeat = null;
+      setTimeout(()=> connectBtn.click(), 80);
+    }
+    if (!opts || opts.refreshLibrary !== false){
+      const refreshBtn = document.getElementById('refreshLib');
+      if (refreshBtn) refreshBtn.click();
+    }
+  }
+  function updateCopyButtonText(ok){
+    if (!copyRoomLinkBtn) return;
+    copyRoomLinkBtn.textContent = ok ? 'Copied!' : 'Copy';
+    if (ok){
+      setTimeout(()=>{ try { copyRoomLinkBtn.textContent = 'Copy'; } catch{} }, 1400);
+    }
+  }
+  function initEmbedHud(){
+    if (!embedMode || !boardWrap) return;
+    const existing = boardWrap.querySelector('.embedHud');
+    if (existing) return;
+    const wrap = document.createElement('div');
+    wrap.className = 'embedHud';
+    const hint = document.createElement('span');
+    hint.textContent = 'Preview';
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = 'Launch full lobby';
+    btn.addEventListener('click', ()=>{
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('embed');
+        window.open(url.toString(), '_blank', 'noopener');
+      } catch {
+        window.open(window.location.href.replace('embed=1',''), '_blank', 'noopener');
+      }
+    });
+    wrap.appendChild(hint);
+    wrap.appendChild(btn);
+    boardWrap.appendChild(wrap);
+  }
+  if (roomRefreshBtn){
+    roomRefreshBtn.addEventListener('click', ()=> refreshRooms());
+  }
+    if (copyRoomLinkBtn){
+    copyRoomLinkBtn.addEventListener('click', async ()=>{
+      if (!roomShareInput) return;
+      updateRoomShareLink();
+      if (!navigator.clipboard){
+        try {
+          roomShareInput.select();
+          document.execCommand('copy');
+          updateCopyButtonText(true);
+        } catch {
+          updateCopyButtonText(false);
+        }
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(roomShareInput.value || '');
+        updateCopyButtonText(true);
+      } catch {
+        updateCopyButtonText(false);
+      }
+    });
+    }
+    updateRoomShareLink();
+    addRoomToUrl();
+    renderRoomsFromCache();
+  refreshRooms(false);
+  initEmbedHud();
+  setInterval(()=> refreshRooms(false), 20000);
+
+  function canonicalSeat(seat){
+    if (!seat) return '';
+    try { return duelSeatMap[(seat || '').toUpperCase()] || (seat || '').toUpperCase(); } catch { return ''; }
+  }
+  function requestDuelReady(){
+    try {
+      const st = window.__lastState || null;
+      if (!st) return;
+      const duel = st.duel || {};
+      if (!duel.active || duel.ready !== false) return;
+      if (ws && ws.readyState === 1){
+        ws.send(JSON.stringify({type:'duel_ready'}));
+      }
+    } catch {}
+  }
+  function requestFreshState(delayMs=200){
+    try {
+      if (!ws || ws.readyState !== 1) return;
+      setTimeout(()=>{ try { ws.send(JSON.stringify({type:'request_state'})); } catch {} }, delayMs);
+    } catch {}
+  }
+  function formatDuelCountdown(waitMs){
+    const secs = Math.max(0, Math.ceil(Number(waitMs || 0) / 1000));
+    if (secs >= 3600){
+      const hrs = Math.ceil(secs / 3600);
+      return `${hrs}h`;
+    }
+    if (secs >= 60){
+      const mins = Math.ceil(secs / 60);
+      return `${mins}m`;
+    }
+    if (secs > 0){
+      return `${secs}s`;
+    }
+    return '';
+  }
+  function formatTurnClock(totalSeconds){
+    const secs = Math.max(0, Math.ceil(Number(totalSeconds || 0)));
+    const mins = Math.floor(secs / 60);
+    const rem = secs % 60;
+    if (mins > 0){
+      return `${mins}:${rem.toString().padStart(2,'0')}`;
+    }
+    return `${secs}s`;
+  }
+  function applyTurnClasses(isYourTurn){
+    lastYourTurn = !!isYourTurn;
+    if (!document.body) return;
+    const warning = !!(isYourTurn && turnTimerState && (turnTimerState.grace_active || (turnTimerState.remaining_sec !== undefined && turnTimerState.remaining_sec <= 10)));
+    document.body.classList.toggle('turn-active', isYourTurn && !warning);
+    document.body.classList.toggle('turn-warning', warning);
+  }
+  function updateTurnTimerUI(){
+    let render = null;
+    if (timerPaused){
+      const remaining = turnTimerState && (turnTimerState.remaining_sec ?? turnTimerState.remaining);
+      const pausedLabel = (remaining !== undefined && remaining !== null)
+        ? formatTurnClock(Number(remaining))
+        : '';
+      render = { color: (turnTimerState && turnTimerState.turn) ? String(turnTimerState.turn).toUpperCase() : null, label: pausedLabel, grace: false };
+      applyTurnClasses(false);
+    } else if (!turnTimerState || !turnTimerState.deadline_ms){
+      applyTurnClasses(lastYourTurn);
+    } else {
+      const now = Date.now();
+      const deadline = Number(turnTimerState.deadline_ms || 0);
+      const graceDeadline = Number(turnTimerState.grace_deadline_ms || 0);
+      let remainingMs = deadline - now;
+      let label = '';
+      let graceActive = false;
+      if (remainingMs <= 0 && graceDeadline){
+        graceActive = true;
+        remainingMs = graceDeadline - now;
+        label = `GRACE ${formatTurnClock(remainingMs / 1000)}`;
+      } else {
+        label = formatTurnClock(remainingMs / 1000);
+      }
+      turnTimerState.remaining_sec = Math.max(0, Math.ceil(remainingMs / 1000));
+      turnTimerState.grace_active = graceActive;
+      render = { color: (turnTimerState.turn || '').toUpperCase(), label, grace: graceActive };
+      applyTurnClasses(lastYourTurn);
+    }
+    cornerTimerRender = render;
+    if (window.__lastState){ drawBoard(window.__lastState); }
+  }
+  function setTurnTimerState(timer){
+    const paused = !!(timer && timer.paused);
+    if (timerPaused !== paused){
+      timerPaused = paused;
+      syncTimerToggle();
+    }
+    turnTimerState = (timer && (timer.deadline_ms || timer.paused)) ? timer : null;
+    if (turnTimerTick){
+      clearInterval(turnTimerTick);
+      turnTimerTick = null;
+    }
+    updateTurnTimerUI();
+    if (turnTimerState && !timerPaused){
+      turnTimerTick = setInterval(updateTurnTimerUI, 1000);
+    }
+  }
+  let timerPaused = false;
+  let showCornerFlag = false;
+  function syncTimerToggle(){
+    if (!toggleTimerBtn) return;
+    toggleTimerBtn.textContent = timerPaused ? 'Resume Timer' : 'Pause Timer';
+  }
+  function syncFlagToggle(){
+    if (!toggleFlagBtn) return;
+    toggleFlagBtn.textContent = showCornerFlag ? 'Flag On' : 'Flag Off';
+  }
+  try {
+    const savedFlag = localStorage.getItem('showCornerFlag');
+    if (savedFlag !== null) showCornerFlag = savedFlag === '1';
+  } catch {}
+  syncTimerToggle();
+  syncFlagToggle();
+  if (toggleTimerBtn){
+    toggleTimerBtn.addEventListener('click', () => {
+      timerPaused = !timerPaused;
+      syncTimerToggle();
+      try {
+        if (ws && ws.readyState === 1){
+          ws.send(JSON.stringify({type:'timer_pause', payload:{paused: timerPaused}}));
+        }
+      } catch {}
+      if (turnTimerTick){
+        clearInterval(turnTimerTick);
+        turnTimerTick = null;
+      }
+      updateTurnTimerUI();
+      if (!timerPaused && turnTimerState){
+        turnTimerTick = setInterval(updateTurnTimerUI, 1000);
+      }
+    });
+  }
+  if (toggleFlagBtn){
+    toggleFlagBtn.addEventListener('click', () => {
+      showCornerFlag = !showCornerFlag;
+      try { localStorage.setItem('showCornerFlag', showCornerFlag ? '1' : '0'); } catch {}
+      syncFlagToggle();
+      if (window.__lastState){ drawBoard(window.__lastState); }
+    });
+  }
+  function updateMoveLogVisibility(state){
+    if (!moveLogPanel) return;
+    const seat = canonicalSeat(connectedSeat);
+    const modes = state && state.modes ? state.modes : {};
+    const isHuman = seat && modes[seat] === 'HUM';
+    moveLogPanel.style.display = isHuman ? 'block' : 'none';
+  }
+  // Selection and hover state in canonical board coordinates
+  let sel = null; // {r,c} or null
+  let hover = null; // {r,c} or null
+  let legalTargets = []; // [{er,ec}] for current selection
+  let dragging = null; // {from:{r,c}, to:{r,c}, x,y}
+  // Replay state
+  let timeline = { initial:null, moves:[], cursor:-1, live:true };
+  let turnTimerState = null;
+  let turnTimerTick = null;
+  let lastYourTurn = false;
+  let cornerTimerRender = null;
+
+    function escapeHtml(str){
+      return (str === undefined || str === null) ? '' : String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+    function openInfoWindow(title, bodyHtml, options){
+      const win = window.open('', '_blank', 'noopener=yes,width=540,height=640');
+      if (!win){
+        alert('Pop-up blocked. Allow pop-ups to view this panel.');
+        return null;
+      }
+      const doc = win.document;
+      const safeTitle = escapeHtml(title || 'Info');
+      const style = 'body{margin:0;padding:16px;background:#121417;color:#e8e8e8;font-family:system-ui,Arial;} h1{margin-top:0;font-size:20px;} pre{background:#0a0f15;border:1px solid #3b4b63;border-radius:4px;padding:12px;white-space:pre-wrap;} table{width:100%;border-collapse:collapse;margin-top:12px;} th,td{border:1px solid #3b4b63;padding:6px;text-align:left;font-size:13px;} button{padding:4px 8px;margin:0;background:#2d3b52;color:#e8e8e8;border:1px solid #4d6286;cursor:pointer;} a{color:#9db2cf;text-decoration:none;} .muted{color:#9db2cf;}';
+      const raw = options && options.raw;
+      const extraScript = (() => {
+        if (!options || !options.extraScript) return '';
+        const closing = '</' + 'script>';
+        const sanitized = options.extraScript.replace(new RegExp(closing, 'gi'), '<\\/script>');
+        return '<script>' + sanitized + closing;
+      })();
+      const content = raw ? (bodyHtml || '') : `<pre>${escapeHtml(bodyHtml || '')}</pre>`;
+      doc.open();
+      doc.write(`<!doctype html><html><head><meta charset="utf-8"><title>${safeTitle}</title><style>${style}</style></head><body>${content}${extraScript}</body></html>`);
+      doc.close();
+      return win;
+    }
+    function listToHtml(lines){
+      return `<ul>${(lines || []).map(line => `<li>${escapeHtml(line)}</li>`).join('')}</ul>`;
+    }
+
+    // View transform (rotate so chosen seat is at the bottom)
+    function transformRC(r, c, seat, size){
+      switch(seat){
+        case 'WHITE': default: return {r, c}; // 0 degrees
+        case 'GREY': return {r: size - 1 - c, c: r}; // 90 degrees counter-clockwise
+        case 'BLACK': return {r: size - 1 - r, c: size - 1 - c}; // 180 degrees
+        case 'PINK': return {r: c, c: size - 1 - r}; // 90 degrees clockwise
+      }
+    }
+
+    // Effective view: lock to your own seat if seated; spectators use chosen/AUTO
+  function effectiveViewSeat(state){
+      try {
+        if (connectedSeat) return connectedSeat;
+        const viewSel = document.getElementById('view');
+        const chosen = (viewSel && viewSel.value) || 'WHITE';
+        return chosen || 'WHITE';
+      } catch { return connectedSeat || 'WHITE'; }
+    }
+
+    function updateViewLockUI(){
+      try {
+        const viewSel = document.getElementById('view'); if (!viewSel) return;
+        const locked = !!connectedSeat;
+        viewSel.disabled = !!locked;
+        if (locked) viewSel.value = connectedSeat;
+      } catch {}
+    }
+
+    function drawBoard(state) {
+      const grid = (state && state.board) ? state.board : [];
+      const SIZE = grid.length || 12;
+      const CH_MIN = Math.floor((SIZE - 8) / 2);
+      const CH_MAX = CH_MIN + 7;
+      // keep last state for view toggles
+      window.__lastState = state || window.__lastState || null;
+      syncCoordHint(SIZE);
+      const S = Math.floor(Math.min(cvs.width, cvs.height) / SIZE); // pixels per square based on current canvas size
+      ctx.clearRect(0,0,cvs.width,cvs.height);
+      const duelInfo = (state && state.duel) || {};
+      const duelActive = !!duelInfo.active;
+      const duelReady = duelActive ? duelInfo.ready !== false : true;
+      const duelWaitMs = duelReady ? 0 : Math.max(0, Number(duelInfo.wait_ms || 0));
+      const duelEliminated = new Set(Array.isArray(duelInfo.eliminated) ? duelInfo.eliminated.map(x => String(x || '').toUpperCase()) : []);
+      window.__duelReady = duelReady;
+      window.__duelWaitMs = duelWaitMs;
+
+      // Determine seat to view (players locked to their own seat; spectators use chosen/AUTO)
+      const viewSel = document.getElementById('view');
+      const chosen = (viewSel && viewSel.value) || 'AUTO';
+      const active = effectiveViewSeat(state);
+      // Update label under the board (YOU / ACTIVE / VIEW(effective))
+      try {
+        const you = connectedSeat || 'UNSET';
+        const youUpper = String(you || '').toUpperCase();
+        const canonYou = canonicalSeat(you);
+        const viewEff = active;
+        const locked = !!canonYou;
+        const baseLabel = canonYou && canonYou !== you ? `${you} -> ${canonYou}` : (canonYou || you || 'UNSET');
+        const canonUpper = String(canonYou || '').toUpperCase();
+        const markOut = duelActive && (duelEliminated.has(youUpper) || duelEliminated.has(canonUpper));
+        const youLabel = markOut ? `${baseLabel} [OUT]` : baseLabel;
+        const label = `YOU: ${youLabel} | ACTIVE: ${state && state.turn ? state.turn : '?'} | VIEW: ${locked ? ('LOCKED -> ' + viewEff) : (chosen + ' -> ' + viewEff)}`;
+        const lblEl = document.getElementById('underLabel'); if (lblEl) { lblEl.textContent = label; }
+      } catch {}
+
+  // Base board squares (match pygame LIGHT/DARK)
+  const theme = (window.BISHOPS_BRANDING && window.BISHOPS_BRANDING.boardTheme()) || {};
+  const LIGHT = theme.LIGHT || '#f0d9b5'; // (240,217,181)
+  const DARK  = theme.DARK || '#b58863'; // (181,136,99)
+      const kingPos = {};
+      for (let r = 0; r < SIZE; r++){
+        const row = grid[r] || [];
+        for (let c = 0; c < SIZE; c++){
+          const cell = row[c];
+          if (cell && cell.kind === 'K' && !kingPos[cell.color]){
+            kingPos[cell.color] = [r, c];
+          }
+        }
+      }
+      for (let r = 0; r < SIZE; r++){
+        for (let c = 0; c < SIZE; c++){
+          const light = (r + c) % 2 === 0;
+          ctx.fillStyle = light ? LIGHT : DARK;
+          const { r: vr, c: vc } = transformRC(r, c, active, SIZE);
+          ctx.fillRect(vc * S, vr * S, S, S);
+        }
+      }
+
+      // Corner camps: draw each as one solid 2x2 block (W, G, B, P)
+      const PLAYER_COLORS = (theme.corner && theme.corner.colors) || {
+        GREY:  'rgb(160,160,160)',
+        BLACK: 'rgb(0,0,0)',
+        WHITE: 'rgb(255,255,255)',
+        PINK:  'rgb(255,105,180)'
+      };
+      const CORNER_RECTS = {
+        GREY:  [0, 0],
+        BLACK: [0, SIZE - 2],
+        WHITE: [SIZE - 2, 0],
+        PINK:  [SIZE - 2, SIZE - 2],
+      };
+      const CORNER_FLIP_COLOR = {
+        WHITE: '#101010',
+        PINK:  '#101010',
+        BLACK: '#f8f8f8',
+        GREY:  '#f8f8f8',
+      };
+      const cornerFill = { ...PLAYER_COLORS };
+      for (const col of Object.keys(CORNER_RECTS)) {
+        const base = CORNER_RECTS[col];
+        const kp = kingPos[col];
+        const outerRow = base[0] === 0 ? 0 : base[0] + 1;
+        const outerCol = base[1] === 0 ? 0 : base[1] + 1;
+        if (kp &&
+            kp[0] >= base[0] && kp[0] <= base[0] + 1 &&
+            kp[1] >= base[1] && kp[1] <= base[1] + 1 &&
+            !(kp[0] === outerRow && kp[1] === outerCol)) {
+          cornerFill[col] = CORNER_FLIP_COLOR[col] || PLAYER_COLORS[col];
+        } else {
+          cornerFill[col] = PLAYER_COLORS[col];
+        }
+      }
+      function drawCornerBlock(r0, c0, colorStr, strokeColor){
+        // transform all four cells to view-space, then compute the top-left
+        const cells = [
+          transformRC(r0, c0, active, SIZE),
+          transformRC(r0+1, c0, active, SIZE),
+          transformRC(r0, c0+1, active, SIZE),
+          transformRC(r0+1, c0+1, active, SIZE),
+        ];
+        const vr = Math.min(cells[0].r, cells[1].r, cells[2].r, cells[3].r);
+        const vc = Math.min(cells[0].c, cells[1].c, cells[2].c, cells[3].c);
+        const x = vc * S, y = vr * S;
+        // solid fill
+        ctx.fillStyle = colorStr;
+        ctx.fillRect(x, y, 2*S, 2*S);
+        // single outer border for the whole 2x2 block
+        const cornerStroke = (theme.corner && theme.corner.strokeWidth) || 5;
+        ctx.lineWidth = cornerStroke; ctx.strokeStyle = strokeColor || (theme.corner && theme.corner.strokeColor) || 'rgb(40,40,40)';
+        ctx.strokeRect(x + 1.5, y + 1.5, 2*S - 3, 2*S - 3);
+      }
+      // Canonical corner starts: (0,0)=GREY, (0,SIZE-2)=BLACK, (SIZE-2,0)=WHITE, (SIZE-2,SIZE-2)=PINK
+      const DARK_STROKE = (theme.corner && theme.corner.strokeColor) || 'rgb(40,40,40)';
+      const BLACK_STROKE = (theme.corner && theme.corner.blackStrokeOverride) || '#ffffff';
+      drawCornerBlock(0, 0, cornerFill.GREY, DARK_STROKE);
+      drawCornerBlock(0, SIZE-2, cornerFill.BLACK, BLACK_STROKE); // white border for BLACK camp
+      drawCornerBlock(SIZE-2, 0, cornerFill.WHITE, DARK_STROKE);
+      drawCornerBlock(SIZE-2, SIZE-2, cornerFill.PINK, DARK_STROKE);
+
+      const flagOrientation = { WHITE: 0, GREY: 90, BLACK: 180, PINK: 270 };
+      function flagAngleFor(color){
+        const base = flagOrientation[color] ?? 0;
+        const view = flagOrientation[active] ?? 0;
+        return (base - view + 360) % 360;
+      }
+      function drawCanadaFlag(cells, ownerColor){
+        const tCells = cells.map(([r,c]) => transformRC(r, c, active, SIZE));
+        const vr = Math.min(...tCells.map(t => t.r));
+        const vc = Math.min(...tCells.map(t => t.c));
+        const vrMax = Math.max(...tCells.map(t => t.r));
+        const vcMax = Math.max(...tCells.map(t => t.c));
+        const x = vc * S;
+        const y = vr * S;
+        const w = (vcMax - vc + 1) * S;
+        const h = (vrMax - vr + 1) * S;
+        const angle = flagAngleFor(ownerColor);
+        const variants = cornerFlagVariants[ownerColor] || cornerFlagVariants.WHITE;
+        const flagImg = (variants && variants[angle]) || (cornerFlagImages[ownerColor] || cornerFlagImages.WHITE);
+        if (cornerFlagReady[ownerColor] && flagImg && flagImg.naturalWidth){
+          ctx.save();
+          ctx.drawImage(flagImg, x, y, w, h);
+          ctx.restore();
+          return;
+        }
+        const stripeW = Math.max(2, Math.floor(w * 0.25));
+        ctx.save();
+        ctx.fillStyle = '#d8242f';
+        ctx.fillRect(x, y, stripeW, h);
+        ctx.fillRect(x + w - stripeW, y, stripeW, h);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(x + stripeW, y, w - stripeW * 2, h);
+        const cx = x + w / 2;
+        const cy = y + h / 2;
+        const leafW = Math.max(4, Math.floor(w * 0.18));
+        const leafH = Math.max(4, Math.floor(h * 0.35));
+        ctx.fillStyle = '#d8242f';
+        ctx.beginPath();
+        ctx.moveTo(cx, cy - leafH);
+        ctx.lineTo(cx + leafW, cy);
+        ctx.lineTo(cx, cy + leafH);
+        ctx.lineTo(cx - leafW, cy);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+      }
+      const TIMER_CELLS = {
+        WHITE: [SIZE - 1, 0],
+        GREY: [0, 0],
+        BLACK: [0, SIZE - 1],
+        PINK: [SIZE - 1, SIZE - 1],
+      };
+      function drawCornerTimer(color, label){
+        if (!label || !TIMER_CELLS[color]) return;
+        const cell = TIMER_CELLS[color];
+        const t = transformRC(cell[0], cell[1], active, SIZE);
+        const x = t.c * S;
+        const y = t.r * S;
+        const w = S;
+        const h = S;
+        const cx = x + w / 2;
+        const cy = y + h / 2;
+        const angle = flagAngleFor(color);
+        const fontPx = Math.max(13, Math.floor(S * 0.38) + 2);
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(angle * Math.PI / 180);
+        ctx.translate(-cx, -cy);
+        ctx.font = `${fontPx}px "Roboto Mono", "Consolas", monospace`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = 'rgba(0,0,0,0.7)';
+        ctx.fillStyle = '#ffffff';
+        ctx.strokeText(label, cx, cy);
+        ctx.fillText(label, cx, cy);
+        ctx.restore();
+      }
+      if (showCornerFlag){
+        drawCanadaFlag([[SIZE - 2, 0], [SIZE - 2, 1]], 'WHITE');
+        drawCanadaFlag([[0, 1], [1, 1]], 'GREY');
+        drawCanadaFlag([[1, SIZE - 1], [1, SIZE - 2]], 'BLACK');
+        drawCanadaFlag([[SIZE - 1, SIZE - 2], [SIZE - 2, SIZE - 2]], 'PINK');
+      }
+      if (cornerTimerRender && cornerTimerRender.label && cornerTimerRender.color){
+        drawCornerTimer(cornerTimerRender.color, cornerTimerRender.label);
+      }
+
+      // Center 8x8 outline
+    const tl = transformRC(CH_MIN, CH_MIN, active, SIZE);
+    const br = transformRC(CH_MAX, CH_MAX, active, SIZE);
+      // Because rotation may swap axes, compute top-left in view space by min/max
+      const vx0 = Math.min(tl.c, br.c) * S;
+      const vy0 = Math.min(tl.r, br.r) * S;
+  ctx.lineWidth = (theme.centerOutline && theme.centerOutline.width) || 5; ctx.strokeStyle = (theme.centerOutline && theme.centerOutline.color) || 'rgb(40,120,40)';
+      ctx.strokeRect(vx0 + 1.5, vy0 + 1.5, 8*S - 3, 8*S - 3);
+
+    // Outer board border (white), same thickness as center outline
+  const boardPx = S * SIZE;
+  ctx.lineWidth = (theme.outerBorder && theme.outerBorder.width) || 5; ctx.strokeStyle = (theme.outerBorder && theme.outerBorder.color) || '#ffffff';
+    ctx.strokeRect(1.5, 1.5, boardPx - 3, boardPx - 3);
+
+      // Dim the outer ring when the duel (8x8 chess) is active so focus stays on the inner board
+      try {
+        if (duelActive){
+          ctx.save();
+          ctx.fillStyle = 'rgba(0,0,0,0.32)';
+          for (let r = 0; r < SIZE; r++){
+            for (let c = 0; c < SIZE; c++){
+              if (r < CH_MIN || r > CH_MAX || c < CH_MIN || c > CH_MAX){
+                const t = transformRC(r, c, active, SIZE);
+                ctx.fillRect(t.c * S, t.r * S, S, S);
+              }
+            }
+          }
+          ctx.restore();
+        }
+      } catch {}
+
+      // Selection/hover overlays (draw above squares but below pieces)
+      function drawCellOutline(vr, vc, color, width){
+        const x = vc*S, y = vr*S; ctx.lineWidth = width; ctx.strokeStyle = color; ctx.strokeRect(x+2, y+2, S-4, S-4);
+      }
+      function drawCellFill(vr, vc, color, alpha){
+        const x = vc*S, y = vr*S; const prev = ctx.globalAlpha; ctx.globalAlpha = alpha; ctx.fillStyle = color; ctx.fillRect(x+2, y+2, S-4, S-4); ctx.globalAlpha = prev;
+      }
+      if (sel){ const t = transformRC(sel.r, sel.c, active, SIZE); drawCellOutline(t.r, t.c, '#39f', Math.max(3, Math.floor(S*0.12))); }
+      if (hover){ const t = transformRC(hover.r, hover.c, active, SIZE); drawCellFill(t.r, t.c, '#39f', 0.22); }
+      // Legal target highlights
+      if (sel && Array.isArray(legalTargets)){
+        for (const mv of legalTargets){
+          const t = transformRC(mv.er, mv.ec, active, SIZE);
+          drawCellFill(t.r, t.c, '#1bd96a', 0.24);
+          drawCellOutline(t.r, t.c, '#1bd96a', Math.max(2, Math.floor(S*0.09)));
+        }
+      }
+
+      // Pieces: draw PNGs from /assets and tint by player color (no badge circles)
+  const cache = drawBoard._imgCache || (drawBoard._imgCache = {});
+  const tintCache = drawBoard._tintCache || (drawBoard._tintCache = {});
+  let usedFallback = false;
+  let piecesDrawn = 0;
+  let expectedPieces = 0;
+  function pieceUrl(_color, kind){ return `${currentBase()}/assets/white_${kind}.png`; }
+      function tintImage(img, colorStr){
+        try {
+          const key = (img.src || 'img') + '|' + colorStr;
+          if (tintCache[key]) return tintCache[key];
+          const w = img.naturalWidth || img.width;
+          const h = img.naturalHeight || img.height;
+          const off = document.createElement('canvas'); off.width = w; off.height = h;
+          const octx = off.getContext('2d');
+          if (!octx){ tintCache[key] = img; return img; }
+          // Draw base white piece
+          octx.clearRect(0,0,w,h);
+          octx.globalCompositeOperation = 'source-over';
+          octx.drawImage(img, 0, 0, w, h);
+          // Multiply fill with target color to preserve shading
+          octx.globalCompositeOperation = 'multiply';
+          octx.fillStyle = colorStr; octx.fillRect(0,0,w,h);
+          // Mask back to original alpha
+          octx.globalCompositeOperation = 'destination-in';
+          octx.drawImage(img, 0, 0, w, h);
+          octx.globalCompositeOperation = 'source-over';
+          tintCache[key] = off; return off;
+        } catch { return img; }
+      }
+      const loadImage = (url) => new Promise(res => {
+        if (cache[url]) return res(cache[url]);
+        const img = new Image();
+        img.onload = () => { cache[url]=img; res(img); };
+        img.onerror = () => { res(null); };
+        img.src = url;
+      });
+      const promises = [];
+      for (let r=0;r<SIZE;r++) for (let c=0;c<SIZE;c++){
+        const cell = (grid[r] && grid[r][c]) || null; if (!cell) continue;
+        expectedPieces++;
+        const {r:vr,c:vc} = transformRC(r, c, active, SIZE);
+        const url = pieceUrl(cell.color, cell.kind);
+        promises.push(loadImage(url).then(img => {
+          // Clamp padding and ensure a visible draw size even on tiny squares
+          const pad = Math.max(2, Math.floor(S*0.08));
+          const sz = Math.max(6, S - 2*pad);
+          const px = vc*S + Math.floor((S - sz)/2);
+          const py = vr*S + Math.floor((S - sz)/2);
+          const COLORS = PLAYER_COLORS; // from theme
+          const colorStr = COLORS[cell.color] || COLORS.WHITE || '#ffffff';
+          if (img){
+            const tinted = tintImage(img, colorStr);
+            ctx.drawImage(tinted, px, py, sz, sz);
+            piecesDrawn++;
+          } else {
+            // Fallback: draw a simple letter for the piece kind
+            usedFallback = true;
+            ctx.fillStyle = colorStr;
+            ctx.font = `${Math.max(10, Math.floor(sz*0.7))}px system-ui, Arial`;
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText(String(cell.kind || '?'), vc*S + S/2, vr*S + S/2);
+            piecesDrawn++;
+          }
+          if (showCoords){
+            ctx.save();
+            ctx.font = `${coordFontSize}px system-ui, Arial`;
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'top';
+            drawCoordAt(r, c);
+            ctx.restore();
+          }
+        }));
+      }
+      // If images aren't all ready yet, they will paint on load callbacks
+      try {
+        const el = document.getElementById('assetsStatus');
+        if (el){
+          const suffix = `drawn ${piecesDrawn}/${expectedPieces}`;
+          el.textContent = usedFallback ? `assets: using fallback letters (${suffix})` : `assets: PNGs OK (${suffix})`;
+        }
+      } catch {}
+      // After all image loads settle, update status again (helps when initial draw showed 0)
+      try {
+        Promise.allSettled(promises).then(()=>{
+          const el2 = document.getElementById('assetsStatus');
+          if (!el2) return;
+          const suffix = `drawn ${piecesDrawn}/${expectedPieces}`;
+          el2.textContent = usedFallback ? `assets: using fallback letters (${suffix})` : `assets: PNGs OK (${suffix})`;
+        });
+      } catch {}
+
+
+
+      const coordFontSize = Math.max(9, Math.floor(S * 0.22) + 2);
+      function drawCoordAt(r, c){
+        const t = transformRC(r, c, active, SIZE);
+        ctx.fillStyle = '#000000';
+        ctx.fillText(`r${r + 1},c${c + 1}`, t.c * S + 2, t.r * S + 2);
+      }
+
+
+      if (showCoords){
+        ctx.save();
+        ctx.font = `${coordFontSize}px system-ui, Arial`;
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'top';
+        for (let r = 0; r < SIZE; r++){
+          for (let c = 0; c < SIZE; c++){
+            drawCoordAt(r, c);
+          }
+        }
+        ctx.restore();
+      }
+
+      // Highlight kings in check during Bishops (not duel/chess), drawn over pieces
+      try {
+        if (!duelActive){
+          const rawChecks = (state && (state.in_check || state.check || state.checks || state.check_by_color)) || [];
+          let checkList = [];
+          if (Array.isArray(rawChecks)){
+            checkList = rawChecks;
+          } else if (rawChecks && typeof rawChecks === 'object'){
+            checkList = Object.keys(rawChecks).filter(k => rawChecks[k]);
+          } else if (typeof rawChecks === 'string'){
+            checkList = [rawChecks];
+          }
+          const inCheck = new Set(checkList.map(c => String(c || '').toUpperCase()));
+          if (inCheck.size){
+            for (const col of inCheck){
+              const kp = kingPos[col];
+              if (!kp) continue;
+              const t = transformRC(kp[0], kp[1], active, SIZE);
+              ctx.save();
+              ctx.globalAlpha = 0.6;
+              ctx.fillStyle = '#ff3b3b';
+              ctx.fillRect(t.c * S + 2, t.r * S + 2, S - 4, S - 4);
+              ctx.globalAlpha = 0.95;
+              ctx.lineWidth = Math.max(2, Math.floor(S * 0.12));
+              ctx.strokeStyle = '#ff1111';
+              ctx.strokeRect(t.c * S + 2, t.r * S + 2, S - 4, S - 4);
+              ctx.restore();
+            }
+          }
+        }
+      } catch {}
+      if (duelActive && !duelReady){
+        ctx.save();
+        ctx.fillStyle = 'rgba(14,18,28,0.55)';
+        ctx.fillRect(0,0,cvs.width,cvs.height);
+        ctx.fillStyle = '#f4f7ff';
+        ctx.font = `${Math.max(16, Math.floor(cvs.width * 0.055))}px system-ui, Arial`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        const waitLabel = duelWaitMs > 0 ? formatDuelCountdown(duelWaitMs) : '';
+        const msg = waitLabel ? `Preparing chess duel... ${waitLabel}` : 'Preparing chess duel...';
+        ctx.fillText(msg, cvs.width / 2, cvs.height / 2);
+        ctx.restore();
+      }
+    }
+
+    (function(){
+      const btn = document.getElementById('openNotesWin');
+      if (!btn) return;
+      btn.addEventListener('click', ()=>{
+        const html = `<h1>Notes</h1>${listToHtml(NOTES_LINES)}`;
+        openInfoWindow('Notes', html, { raw: true });
+      });
+    })();
+
+    (function(){
+      const btn = document.getElementById('openQuickRulesWin');
+      if (!btn) return;
+      btn.addEventListener('click', ()=>{
+        const html = `<h1>Quick Rules</h1>${listToHtml(QUICK_RULE_LINES)}`;
+        openInfoWindow('Quick Rules', html, { raw: true });
+      });
+    })();
+
+    function log(msg){
+      if (!logEl) return;
+      logEl.textContent += msg + "\n";
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+    function pieceAt(grid, r, c){ return (grid && grid[r] && grid[r][c]) ? grid[r][c] : null; }
+  function rcToAlg(r, c, grid){
+      const SIZE = (grid && grid.length) ? grid.length : 12;
+      const CH_MIN = Math.floor((SIZE - 8) / 2);
+      const CH_MAX = CH_MIN + 7;
+      // Corner camps are 2x2 blocks: label as W/G/B/P with 1..4 in row-major within the camp
+      const camps = [
+        { tag: 'G', r0: 0,       c0: 0 },            // GREY top-left
+        { tag: 'B', r0: 0,       c0: SIZE - 2 },     // BLACK top-right
+        { tag: 'W', r0: SIZE - 2, c0: 0 },           // WHITE bottom-left
+        { tag: 'P', r0: SIZE - 2, c0: SIZE - 2 },    // PINK bottom-right
+      ];
+      for (const camp of camps){
+        const {tag, r0, c0} = camp;
+        if (r >= r0 && r <= r0+1 && c >= c0 && c <= c0+1){
+          const idx = (r - r0) * 2 + (c - c0) + 1; // 1..4 row-major
+          return `${tag}${idx}`;
+        }
+      }
+      if (r>=CH_MIN && r<=CH_MAX && c>=CH_MIN && c<=CH_MAX){
+        const files = 'abcdefgh';
+        const file = files[c - CH_MIN];
+        const rank = (CH_MAX - r + 1); // a1 at bottom-left in canonical orientation
+        return `${file}${rank}`;
+      }
+      // Human-friendly fallback: 1-based row/col indices
+      return `r${r+1},c${c+1}`;
+    }
+    function formatMove(m, i){
+      const by = m.by || '?'; const sr=m.sr,sc=m.sc,er=m.er,ec=m.ec; const isCap = !!m.cap;
+      const promo = m.promoted ? ' =Q' : '';
+      // Inspect pre-move board to get piece letter and choose algebraic squares
+      let pieceLetter = '?'; let pre = null;
+      try { pre = reconstructBoardAt(i-1); } catch {}
+      try { const p = pieceAt(pre, sr, sc); pieceLetter = p && p.kind ? p.kind : '?'; } catch {}
+      const from = rcToAlg(sr, sc, pre); const to = rcToAlg(er, ec, pre);
+      const sep = isCap ? 'x' : '->';
+      const aiTag = '';
+      return `${(i+1).toString().padStart(3,' ')}. ${by}: ${pieceLetter}${from}${sep}${to}${promo}${aiTag}`;
+    }
+    function renderMoveList(){
+      if (!logEl) return;
+      const lines = timeline.moves.map((m,i)=>{
+        const cur = (i === timeline.cursor) ? '>> ' : '   ';
+        return cur + formatMove(m,i);
+      });
+      logEl.textContent = lines.join('\n');
+      logEl.scrollTop = logEl.scrollHeight;
+      updateReplayButtons();
+    }
+    function updateReplayButtons(){
+      const back = document.getElementById('btnBack');
+      const fwd = document.getElementById('btnFwd');
+      const res = document.getElementById('btnResume');
+      if (!back || !fwd || !res) return;
+      const max = timeline.moves.length - 1;
+      const cursor = Number.isFinite(timeline.cursor) ? timeline.cursor : -1;
+      const hasMoves = max >= 0;
+      back.disabled = !hasMoves || cursor < 0;
+      fwd.disabled = !hasMoves || cursor >= max;
+      res.disabled = !hasMoves || timeline.live;
+    }
+    async function loadLibraryItemByName(name){
+      if (!name) return;
+      try {
+        const res = await fetchRoom(`/library/game/${encodeURIComponent(name)}`, { cache:'no-store' });
+        if (!res.ok){ errEl.textContent = 'Load failed'; return; }
+        const payload = await res.json();
+        timeline.initial = payload.initial || (payload.final && payload.final.board) || null;
+        timeline.moves = payload.moves || [];
+        timeline.live = false;
+        timeline.cursor = timeline.moves.length - 1;
+        renderMoveList();
+        const grid = reconstructBoardAt(timeline.cursor);
+        const st = window.__lastState || { turn: 'WHITE' };
+        drawBoard({ board: grid, turn: st.turn });
+        errEl.textContent = '';
+      } catch(e){
+        errEl.textContent = 'Load error';
+      }
+    }
+    window.__loadLibraryGame = loadLibraryItemByName;
+    function applyMoveLocally(grid, m){
+      if (!grid) return grid;
+      const SIZE = grid.length || 12;
+      const next = grid.map(row=> row.map(cell=> cell? {kind:cell.kind||cell.kind, color:cell.color||cell.color}:cell));
+      const src = (next[m.sr] && next[m.sr][m.sc]) || null;
+      const dst = (next[m.er] && next[m.er][m.ec]) || null;
+      next[m.sr][m.sc] = null;
+      if (m.swap && src && dst){
+        next[m.sr][m.sc] = {kind: dst.kind, color: dst.color};
+        next[m.er][m.ec] = {kind: (m.promoted ? 'Q' : src.kind), color: src.color};
+      } else if (src){
+        next[m.er][m.ec] = {kind: (m.promoted? 'Q' : src.kind), color: src.color};
+      }
+      return next;
+    }
+    function reconstructBoardAt(cursor){
+      if (!timeline.initial){ return null; }
+      let grid = JSON.parse(JSON.stringify(timeline.initial));
+      for (let i=0;i<=cursor && i<timeline.moves.length;i++){
+        grid = applyMoveLocally(grid, timeline.moves[i]);
+      }
+      return grid;
+    }
+
+    connectBtn.onclick = async () => {
+      applyUserId(userIdInput && userIdInput.value);
+      
+      // Try to get Supabase auth token first
+      let authToken = null;
+      let authenticatedEmail = null;
+      try {
+        const { data: { session } } = await window.supabase.auth.getSession();
+        if (session && session.access_token) {
+          authToken = session.access_token;
+          authenticatedEmail = session.user.email;
+          authTokenGlobal = authToken;
+        }
+      } catch (e) {
+        console.log('No Supabase session found, using username authentication');
+      }
+      
+      // Always require a player name for seat ID (URL param overrides, otherwise use display name input/storage)
+      if (urlUserParam){
+        userId = urlUserParam;
+        applyUserId(urlUserParam);
+      } else {
+        const chosenName = sanitizeUserId((userIdInput && userIdInput.value) || (displayNameInput && displayNameInput.value) || loadDisplayName() || '');
+        if (!chosenName){
+          errEl.textContent = 'Enter a player name (letters/numbers/-/_).';
+          if (userIdInput) userIdInput.focus();
+          return;
+        }
+        saveDisplayName(chosenName);
+        if (authenticatedEmail) saveDisplayNameForEmail(authenticatedEmail, chosenName);
+        if (authenticatedEmail && authToken && !profileName){
+          try {
+            const ok = await saveProfileName(authToken, chosenName, profileCountry);
+            if (ok){
+              profileName = chosenName;
+              saveDisplayNameForEmail(authenticatedEmail, chosenName);
+            }
+          } catch {}
+        }
+        userId = chosenName;
+        applyUserId(chosenName);
+      }
+      
+      // Matchmaking: assign the earliest room with an open seat (Room 1 then Room 2, ...)
+      if (!spectateMode){
+        try {
+          const seatPref = (seatSel && seatSel.value) ? String(seatSel.value) : 'AUTO';
+          const res = await fetchWithFallback(`/matchmake?seat=${encodeURIComponent(seatPref)}`, { cache:'no-store' });
+          const data = await res.json().catch(()=>null);
+          if (res.ok && data && data.ok && data.room_id && data.seat){
+            const assignedRoom = normalizeRoomId(data.room_id);
+            const assignedSeat = String(data.seat || '').toUpperCase();
+            if (assignedRoom && assignedRoom !== currentRoom){
+              currentRoom = assignedRoom;
+              window.__room = assignedRoom;
+              addRoomToUrl();
+              updateRoomShareLink();
+              renderRoomsFromCache();
+            }
+            if (seatSel && assignedSeat){ seatSel.value = assignedSeat; }
+          } else if (data && data.error){
+            errEl.textContent = data.error;
+            return;
+          }
+        } catch (e) {
+          // If matchmaking fails, fall back to current room selection
+          console.warn('Matchmake failed:', e);
+        }
+      }
+
+      const seat = spectateMode ? 'VIEW' : seatSel.value;
+      if (ws) ws.close();
+      const base = currentBase();
+      const roomParam = encodeURIComponent(currentRoom || ROOM_DEFAULT);
+      
+      // Build WebSocket URL with token if authenticated
+      let url = `${base.replace('http','ws')}/ws?room=${roomParam}&seat=${encodeURIComponent(seat)}&user=${encodeURIComponent(userId)}`;
+      if (authToken) {
+        url += `&token=${encodeURIComponent(authToken)}`;
+      }
+      const countryParam = normalizeCountryCode(profileCountry);
+      if (countryParam) {
+        url += `&country=${encodeURIComponent(countryParam)}`;
+      }
+      const isSpectator = spectateMode || seat === 'VIEW';
+      
+      ws = new WebSocket(url);
+      ws.onopen = () => { 
+        roomSwitchLocked = !isSpectator;
+        connectedSeat = isSpectator ? null : seat; 
+        applySpectatorMode(); 
+        const authBadge = authenticatedEmail ? ' 🔒' : '';
+        const seatLabel = isSpectator ? 'SPECTATE' : String(seat || '').toUpperCase();
+        statusEl.textContent = `${seatLabel} @ ${currentRoom}${authBadge}`; 
+        ws.send(JSON.stringify({type:'hello'})); 
+        errEl.textContent='';
+        try { updateViewLockUI(); } catch {}
+        try { renderRoomsFromCache(); } catch {}
+        // Request state explicitly after connect to ensure we get a board snapshot
+        setTimeout(()=>{ try { ws.send(JSON.stringify({type:'request_state'})); } catch{} }, 100);
+      };
+      function updateControlButtons(state){
+      try {
+            const mySeat = connectedSeat || 'WHITE';
+        const canonSeat = canonicalSeat(mySeat);
+        const duelInfo = (state && state.duel) || {};
+        const eliminatedSet = new Set(Array.isArray(duelInfo.eliminated) ? duelInfo.eliminated.map(x => String(x || '').toUpperCase()) : []);
+        const lockedArr = state && Array.isArray(state.quit_locked) ? state.quit_locked : [];
+        const locked = new Set(lockedArr);
+        const pending = state && typeof state.reset_pending_by === 'string' ? state.reset_pending_by : null;
+        const isPlayer = CONTROL_SEATS.includes(mySeat);
+        const alive = state && Array.isArray(state.alive) ? state.alive : [];
+        const duelLocked = !!(state && state.two_stage && state.two_stage.chess_lock);
+        const seatLocked = locked.has(mySeat) || locked.has(canonSeat);
+        if (btnForceDuel){
+          btnForceDuel.disabled = !isPlayer || seatLocked || alive.length < 2 || duelLocked;
+          btnForceDuel.style.minWidth = '120px';
+          btnForceDuel.style.width = '120px';
+        }
+        if (btnSwapKQ){
+          const aliveSet = new Set(alive || []);
+          btnSwapKQ.disabled = !isPlayer || seatLocked || !aliveSet.has(canonSeat) || duelLocked;
+          btnSwapKQ.style.minWidth = '120px';
+          btnSwapKQ.style.width = '120px';
+        }
+        if (btnSwitchSeat){
+          const duelActive = !!(state && state.duel && state.duel.active);
+          if (duelActive && (canonSeat === 'WHITE' || canonSeat === 'BLACK')) {
+            const target = canonSeat === 'WHITE' ? 'BLACK' : 'WHITE';
+            btnSwitchSeat.style.display = '';
+            btnSwitchSeat.textContent = `Switch to ${target}`;
+            btnSwitchSeat.disabled = false;
+          } else {
+            btnSwitchSeat.style.display = 'none';
+          }
+        }
+        if (btnQuitSeat){
+          btnQuitSeat.disabled = !isPlayer || seatLocked;
+          btnQuitSeat.textContent = 'Resign';
+          btnQuitSeat.style.minWidth = '110px';
+          btnQuitSeat.style.width = '110px';
+        }
+        if (btnNewGame){
+          const pendingMine = pending === canonSeat;
+          const pendingOther = pending && pending !== canonSeat;
+          btnNewGame.disabled = !isPlayer || seatLocked || !!pendingOther;
+          btnNewGame.textContent = pendingMine ? 'Cancel New Game' : 'New Game';
+          btnNewGame.style.minWidth = '130px';
+          btnNewGame.style.width = '130px';
+        }
+        if (btnConfirmNewGame){
+          const pendingMine = pending === canonSeat;
+          btnConfirmNewGame.style.display = pendingMine ? 'inline-block' : 'none';
+          btnConfirmNewGame.disabled = !isPlayer || seatLocked;
+          btnConfirmNewGame.style.minWidth = '130px';
+          btnConfirmNewGame.style.width = '130px';
+        }
+
+        const ctrlStatus = document.getElementById('controlStatus');
+        if (ctrlStatus){
+          if (pending && pending !== canonSeat){
+            ctrlStatus.textContent = `${pending} requested a new game.`;
+          } else if (pending && pending === canonSeat){
+            ctrlStatus.textContent = 'Confirm to reset the game.';
+          } else if (state && state.duel && state.duel.active && state.duel.ready === false){
+            const waitMs = Math.max(0, Number(state.duel.wait_ms || 0));
+            const label = waitMs > 0 ? formatDuelCountdown(waitMs) : '';
+            ctrlStatus.textContent = label ? `Chess duel syncing... (${label})` : '';
+          } else if (seatLocked && eliminatedSet.has(String(canonSeat || '').toUpperCase())){
+            ctrlStatus.textContent = 'Eliminated (watching).';
+          } else if (seatLocked){
+            ctrlStatus.textContent = 'Watching.';
+          } else {
+            ctrlStatus.textContent = '';
+          }
+        }
+        // Live human prompt
+        try {
+          const roomInfo = currentRoomInfo();
+          const taken = roomInfo && Array.isArray(roomInfo.taken) ? roomInfo.taken.length : null;
+          const aliveCount = Array.isArray(state && state.alive) ? state.alive.length : null;
+          const seatCount = taken !== null ? taken : aliveCount;
+          const modes = (state && state.modes) ? state.modes : {};
+          const humanSeats = CONTROL_SEATS.filter(col => (modes[col] || 'HUM').toUpperCase() === 'HUM');
+          const humansFull = humanSeats.length === CONTROL_SEATS.length && seatCount === CONTROL_SEATS.length;
+          if (humanReadyBanner){
+            humanReadyBanner.style.display = humansFull ? 'flex' : (seatCount >= 3 ? 'flex' : 'none');
+            if (humanReadyText){
+              if (humansFull){
+                humanReadyText.textContent = 'All 4 humans present. Start live game?';
+              } else if (seatCount >= 3){
+                humanReadyText.textContent = '3 humans here. Start live game?';
+              } else {
+                humanReadyText.textContent = 'Humans ready. Start live game?';
+              }
+            }
+          }
+          if (startLiveGameBtn){ startLiveGameBtn.disabled = !ws || ws.readyState !== 1 || spectateMode || !humansFull; }
+          if (openTabsRow){ openTabsRow.style.display = spectateMode ? 'none' : 'flex'; }
+        } catch {}
+        } catch {}
+      }
+      function updateTurnLock(state){
+        try {
+          const mySeat = connectedSeat || (spectateMode ? 'VIEW' : 'WHITE');
+          const canonSeat = canonicalSeat(mySeat);
+        const duelInfo = (state && state.duel) || {};
+        const eliminatedSet = new Set(Array.isArray(duelInfo.eliminated) ? duelInfo.eliminated.map(x => String(x || '').toUpperCase()) : []);
+        const duelReady = !(state && duelInfo.active && duelInfo.ready === false);
+        const canonUpper = String(canonSeat || '').toUpperCase();
+        const eliminated = duelInfo.active && canonUpper && eliminatedSet.has(canonUpper);
+        const yourTurn = state && duelReady && !eliminated && canonSeat && state.turn === canonSeat;
+        applyTurnClasses(yourTurn);
+        // Canvas outline to indicate input lock/unlock
+        cvs.style.outline = yourTurn ? '3px solid #1bd96a' : '1px solid var(--line)';
+          statusEl.textContent = statusEl.textContent.replace(/ \\| .+$/, '');
+          if (!duelReady && state && state.duel && state.duel.active){
+            const waitMs = Math.max(0, Number(state.duel.wait_ms || 0));
+            const waitLabel = waitMs > 0 ? formatDuelCountdown(waitMs) : '';
+            if (waitLabel){
+              statusEl.textContent += ` | Duel syncing ${waitLabel}`;
+            }
+          } else if (eliminated){
+            statusEl.textContent += ' | Eliminated';
+          } else if (!canonSeat && spectateMode){
+            statusEl.textContent += ' | Spectating';
+          } else {
+            statusEl.textContent += yourTurn ? ' | Your turn' : ' | Waiting';
+          }
+          const lock = document.getElementById('seatLock');
+          if (lock){
+            if (!duelReady && state && state.duel && state.duel.active){
+              lock.textContent = 'HOLD';
+              lock.classList.remove('pulse');
+            } else if (eliminated){
+              lock.textContent = 'OUT';
+              lock.classList.remove('pulse');
+            } else {
+              lock.textContent = yourTurn ? 'GO' : '--';
+              lock.classList.toggle('pulse', !!yourTurn);
+            }
+          }
+        } catch {}
+      }
+      ws.onmessage = (ev) => {
+        try {
+          const msg = JSON.parse(ev.data);
+          if (msg.type === 'user_required'){
+            errEl.textContent = 'Enter a name before connecting.';
+            return;
+          }
+          if (msg.type === 'user_in_use'){
+            errEl.textContent = 'Name already in use. Pick another.';
+            return;
+          }
+          if (msg.type === 'chat'){
+            appendChatLine(msg.payload || {});
+            return;
+          }
+          if (msg.type === 'room_full'){
+            errEl.textContent = 'Table full. Moving you to the next open table.';
+            refreshRooms(false).then(()=>{
+              const target = firstOpenRoomId(true);
+              if (target && target !== currentRoom){
+                setRoom(target, { force: true });
+              }
+            }).catch(()=>{});
+            return;
+          }
+          if (msg.type === 'seat_taken' || msg.type === 'seat_denied'){
+            errEl.textContent = 'Seat already taken. Choose a different seat.';
+            return;
+          }
+          if (msg.type === 'seat_changed'){
+            const seat = String(msg.seat || '').toUpperCase();
+            if (seat){
+              connectedSeat = seat;
+              if (seatSel) seatSel.value = seat;
+              try { updateViewLockUI(); } catch {}
+              try { drawBoard(window.__lastState || null); } catch {}
+            }
+            return;
+          }
+          if (msg.type === 'rooms_update'){
+            if (Array.isArray(msg.rooms)){
+              roomsCache = msg.rooms;
+              renderRoomsFromCache();
+            }
+            return;
+          }
+          if (msg.type==='state'){
+            const s = msg.payload; turnEl.textContent = s.turn || '?'; sel = null; legalTargets = []; dragging = null; errEl.textContent = '';
+            if (s && s.seat_countries){
+              seatCountries = s.seat_countries || {};
+              updateSeatCountryFlags();
+            }
+            const duelInfo = (s.duel || {});
+            if (duelInfo.active){
+              duelSeatMap = { 'WHITE': 'WHITE', 'BLACK': 'BLACK' };
+            } else {
+              duelSeatMap = {};
+            }
+            const duelReady = duelInfo.ready !== false;
+            const duelWait = duelReady ? 0 : Math.max(0, Number(duelInfo.wait_ms || 0));
+            const eliminatedSet = new Set(Array.isArray(duelInfo.eliminated) ? duelInfo.eliminated.map(x => String(x || '').toUpperCase()) : []);
+            const duelNotice = document.getElementById('duelNotice');
+            if (duelNotice){
+              if (duelInfo.active && !duelReady){
+                const label = duelWait > 0 ? formatDuelCountdown(duelWait) : '';
+                duelNotice.textContent = label ? `Chess duel is preparing... (${label})` : '';
+              } else {
+                duelNotice.textContent = '';
+              }
+            }
+      const baseSeat = connectedSeat || (spectateMode ? 'VIEW' : 'WHITE');
+      const mappedSeat = spectateMode ? 'VIEW' : canonicalSeat(baseSeat);
+      const badge = authenticatedEmail ? ' 🔒' : '';
+      statusEl.textContent = `${String(mappedSeat || baseSeat || '').toUpperCase()} @ ${currentRoom}${badge}`;
+            if (duelInfo.active && !duelReady){
+              const waitLabel = duelWait > 0 ? formatDuelCountdown(duelWait) : '';
+              if (waitLabel){
+                statusEl.textContent += ` | Duel syncing ${waitLabel}`;
+              }
+            }
+            // Update timeline
+            try {
+              if (Array.isArray(s.moves)) timeline.moves = s.moves;
+              if (Array.isArray(s.initial)) timeline.initial = s.initial; else if (s.initial) timeline.initial = s.initial;
+              if (timeline.live){ timeline.cursor = timeline.moves.length - 1; }
+              renderMoveList();
+              updateMoveLogVisibility(s);
+              setTurnTimerState(s.turn_timer);
+              const lockedSet = new Set(Array.isArray(s.quit_locked) ? s.quit_locked : []);
+              // Reflect player modes if provided
+              if (s.modes){
+                document.querySelectorAll('#playerModes .modeBtn').forEach(btn=>{
+                  const col = btn.getAttribute('data-col');
+                  if (!col) return;
+                  const short = SHORT_LABELS[col] || col.slice(0, 2);
+                  let text = short;
+                  if (eliminatedSet.has(col)){
+                    text += ' [OUT]';
+                  }
+                  if (lockedSet.has(col)) text += ' [L]';
+                  btn.textContent = text;
+                  btn.disabled = lockedSet.has(col);
+                  btn.style.minWidth = '92px';
+                  btn.style.width = '92px';
+                });
+              }
+              // Reflect auto-elim threshold if provided
+              try {
+                const thr = (typeof s.auto_elim_threshold === 'number') ? s.auto_elim_threshold : 0;
+                const sel = document.getElementById('autoElimSel');
+                if (sel){ sel.value = String([0,18,30].includes(thr) ? thr : 0); }
+                const echo = document.getElementById('autoElimEcho');
+                if (echo){ echo.textContent = `(server ${thr||0})`; }
+                const note = document.getElementById('autoElimNote');
+                if (note){
+                  const two = s.two_stage || {};
+                  note.style.display = two.active ? 'inline' : 'none';
+                }
+              } catch {}
+              // Two-player status line
+              try {
+                const row = document.getElementById('twoStageRow');
+                const box = document.getElementById('twoStageStatus');
+                const t = s.two_stage || {};
+                const on = !!t.active;
+                if (!row || !box) {}
+                else if (!on){ row.style.display='none'; }
+                else {
+                  row.style.display='flex';
+                  const finals = Array.isArray(t.finals) ? t.finals.filter(Boolean).join(' vs ') : '';
+                  const entered = t.entered || {};
+                  const entStr = Object.entries(entered).map(([k,v])=> v? k[0] : '').filter(Boolean).join('');
+                  const lock = t.chess_lock ? 'LOCK' : 'OPEN';
+                  const grace = t.grace_active ? `grace:${t.grace_turns_remaining}` : '';
+                  box.textContent = `Two-player: ${finals} | entered:${entStr || 'NONE'} | ${lock} ${grace}`;
+                }
+              } catch{}
+            } catch {}
+            window.__lastState = s;
+            updateControlButtons(s);
+            // Draw either live state or reconstructed view
+            if (timeline.live){ drawBoard(s); }
+            else {
+              const grid = reconstructBoardAt(timeline.cursor);
+              drawBoard({ board: grid, turn: s.turn });
+            }
+            updateTurnLock(s);
+          } else if (msg.type==='error') {
+            const payload = msg.payload || 'Error';
+            if (typeof payload === 'string'){
+              const lower = payload.toLowerCase();
+              // Suppress noisy move-related flashes on selection/touch
+              if (lower.includes('illegal move') || (lower.includes('turn') && lower.includes('not'))){
+                return;
+              }
+            }
+            errEl.textContent = payload;
+          } else if (msg.type==='legal'){
+            const p = msg.payload || {};
+            if (sel && p.sr === sel.r && p.sc === sel.c){
+              legalTargets = Array.isArray(p.moves) ? p.moves : [];
+              drawBoard(window.__lastState || null);
+            }
+          }
+        } catch(e) {
+          // Not JSON logging raw
+          log(ev.data);
+        }
+      };
+
+      ws.onclose = () => { statusEl.textContent = `Disconnected (${currentRoom})`; roomSwitchLocked = false; connectedSeat = null; applySpectatorMode(); setTurnTimerState(null); applyTurnClasses(false); updateMoveLogVisibility(null); try { updateViewLockUI(); drawBoard(window.__lastState || null); renderRoomsFromCache(); } catch {} };
+    };
+    // --- Canvas interaction (click-to-select/move, hover) ---
+    function inverseTransformRC(vr, vc, seat, size){
+      switch(seat){
+        case 'WHITE': default: return {r: vr, c: vc};
+        case 'GREY': return {r: vc, c: size-1 - vr};
+        case 'BLACK': return {r: size-1 - vr, c: size-1 - vc};
+        case 'PINK': return {r: size-1 - vc, c: vr};
+      }
+    }
+    function viewSeatForInput(){
+      const st = window.__lastState || null;
+      if (connectedSeat) return canonicalSeat(connectedSeat);
+      const vSel = document.getElementById('view');
+      const choice = (vSel && vSel.value) || 'WHITE';
+      const resolved = choice === 'AUTO' ? (st && st.turn) || 'WHITE' : choice;
+      return canonicalSeat(resolved);
+    }
+    function xyToBoardRC(x, y){
+      const st = window.__lastState || {board:Array.from({length:12},()=>Array(12).fill(null))};
+      const SIZE = st.board.length;
+      const S = Math.floor(Math.min(cvs.width, cvs.height) / SIZE);
+      const vr = Math.floor(y / S), vc = Math.floor(x / S);
+      if (vr < 0 || vc < 0 || vr >= SIZE || vc >= SIZE) return null;
+      const seat = viewSeatForInput();
+      const rc = inverseTransformRC(vr, vc, seat, SIZE);
+      if (rc.r < 0 || rc.c < 0 || rc.r >= SIZE || rc.c >= SIZE) return null;
+      return rc;
+    }
+    function isMyTurn(){
+      const st = window.__lastState || null; if (!st) return false;
+      const seat = connectedSeat || '';
+      const canonSeat = canonicalSeat(seat);
+      return !!canonSeat && st.turn === canonSeat;
+    }
+    function trySendMove(from, to){
+      if (!ws || ws.readyState!==1){ errEl.textContent = 'Not connected'; return; }
+      if (!isMyTurn()){ errEl.textContent = 'Not your turn'; return; }
+      if (window.__duelReady === false){
+        requestDuelReady();
+        errEl.textContent = 'Chess duel is preparing...';
+        return;
+      }
+      errEl.textContent = '';
+      ws.send(JSON.stringify({type:'move', payload:{sr:from.r, sc:from.c, er:to.r, ec:to.c}}));
+    }
+    cvs.addEventListener('mousemove', (ev)=>{
+      const rect = cvs.getBoundingClientRect();
+      const rc = xyToBoardRC(ev.clientX - rect.left, ev.clientY - rect.top);
+      hover = rc;
+      // Pointer when hovering your piece and it's your turn
+      try {
+        const st = window.__lastState || null;
+      const seatRaw = connectedSeat || '';
+        const seatCanon = canonicalSeat(seatRaw);
+        const turnOk = st && seatCanon && st.turn === seatCanon;
+        const piece = st && rc ? (st.board[rc.r] && st.board[rc.r][rc.c]) : null;
+        const own = piece && seatCanon && piece.color === seatCanon;
+        cvs.style.cursor = (turnOk && own) ? 'pointer' : 'default';
+      } catch { cvs.style.cursor = 'default'; }
+      drawBoard(window.__lastState || null);
+    });
+    cvs.addEventListener('mouseleave', ()=>{ hover = null; drawBoard(window.__lastState || null); });
+    cvs.addEventListener('click', (ev)=>{
+      const rect = cvs.getBoundingClientRect();
+      const rc = xyToBoardRC(ev.clientX - rect.left, ev.clientY - rect.top);
+      const st = window.__lastState || null; if (!rc || !st) return;
+      if (st.duel && st.duel.active && st.duel.ready === false){
+        requestDuelReady();
+        errEl.textContent = 'Chess duel is preparing...';
+        return;
+      }
+  const mySeat = connectedSeat || '';
+      if (!CONTROL_SEATS.includes(mySeat)){ errEl.textContent = 'Select a seat and Connect to move.'; return; }
+      if (st.turn !== mySeat){ errEl.textContent = 'Waiting for your turn.'; return; }
+      const piece = st.board[rc.r] && st.board[rc.r][rc.c];
+      if (!sel){
+        if (!piece){ errEl.textContent = ''; return; }
+        if (piece.color !== mySeat){ errEl.textContent = 'Select one of your pieces'; return; }
+        sel = rc; legalTargets = []; errEl.textContent = '';
+        // ask server for legal moves only when it's your turn
+        if (ws && ws.readyState===1){ ws.send(JSON.stringify({type:'legal_for', payload:{sr:rc.r, sc:rc.c}})); }
+        drawBoard(st); return;
+      } else {
+        if (sel.r === rc.r && sel.c === rc.c){ sel = null; legalTargets=[]; drawBoard(st); return; }
+        const from = sel; const to = rc; sel = null; legalTargets = []; drawBoard(st);
+        trySendMove(from, to);
+      }
+    });
+    // Drag-and-drop support
+    cvs.addEventListener('mousedown', (ev)=>{
+      const rect = cvs.getBoundingClientRect();
+      const rc = xyToBoardRC(ev.clientX - rect.left, ev.clientY - rect.top);
+      const st = window.__lastState || null; if (!rc || !st) return;
+      if (st.duel && st.duel.active && st.duel.ready === false){
+        requestDuelReady();
+        return;
+      }
+      const piece = st.board[rc.r] && st.board[rc.r][rc.c];
+  const mySeat = connectedSeat || '';
+      if (!piece || piece.color !== mySeat) return;
+      sel = rc; legalTargets = []; if (ws && ws.readyState===1){ ws.send(JSON.stringify({type:'legal_for', payload:{sr:rc.r, sc:rc.c}})); }
+      dragging = { from: rc, to: rc, x: ev.clientX, y: ev.clientY };
+    });
+    cvs.addEventListener('mousemove', (ev)=>{
+      if (!dragging) return;
+      dragging.x = ev.clientX; dragging.y = ev.clientY;
+    });
+    cvs.addEventListener('mouseup', (ev)=>{
+      if (!dragging) return;
+      const rect = cvs.getBoundingClientRect();
+      const rc = xyToBoardRC(ev.clientX - rect.left, ev.clientY - rect.top);
+      const from = dragging.from; dragging = null; if (!rc) return;
+      sel = null; legalTargets = []; trySendMove(from, rc);
+    });
+
+    // Redraw on view changes
+  document.getElementById('view').onchange = () => { drawBoard(window.__lastState || null); };
+  seatSel.onchange = () => {
+    // Only update local view; do not auto-connect
+    drawBoard(window.__lastState || null);
+  };
+
+    // Open four test windows removed for player-only flow
+
+    sendBtn.onclick = () => {
+      if (!ws || ws.readyState!==1){ errEl.textContent='Not connected'; return; }
+      requestDuelReady();
+      if (window.__duelReady === false){
+        errEl.textContent = 'Chess duel is preparing...';
+        return;
+      }
+      const sr = parseInt(srIn.value,10), sc=parseInt(scIn.value,10), er=parseInt(erIn.value,10), ec=parseInt(ecIn.value,10);
+      ws.send(JSON.stringify({type:'move', payload:{sr,sc,er,ec}}));
+    };
+    if (quickWhiteBtn){ quickWhiteBtn.onclick = () => { requestDuelReady(); try { seatSel.value = 'WHITE'; connectBtn.click(); } catch {} }; }
+    // Random connect removed (player picks seat)
+    // Auto-Elim selector -> server
+    (function(){
+      const sel = document.getElementById('autoElimSel');
+      if (!sel) return;
+      sel.addEventListener('change', ()=>{
+        const thr = parseInt(sel.value, 10);
+        const valid = [0,18,30];
+        const v = valid.includes(thr) ? thr : 0;
+        try { if (ws && ws.readyState===1){ ws.send(JSON.stringify({type:'set_auto_elim', payload:{ threshold: v }})); } } catch{}
+      });
+    })();
+    function resizeCanvas(){
+      // Compute available square size within boardWrap area
+      const pad = 16; // safety padding
+      const availW = Math.max(100, boardWrap.clientWidth - pad);
+      const availH = Math.max(100, window.innerHeight - pad);
+      const size = Math.floor(Math.min(availW, availH));
+      cvs.width = size; cvs.height = size;
+      drawBoard(window.__lastState || {board:Array.from({length:12},()=>Array.from({length:12},()=>null))});
+    }
+    window.addEventListener('resize', resizeCanvas);
+    // initial render
+    resizeCanvas();
+    // render copyright in sidebar
+    try {
+      const cp = document.getElementById('copyright');
+      if (window.BISHOPS_BRANDING && cp){ cp.textContent = window.BISHOPS_BRANDING.copyrightCaption(); }
+    } catch {}
+    // show engine version if available
+    async function updateEngineVersion(){
+      try {
+        const res = await fetchWithFallback('/engine_manifest.json', { cache:'no-store' });
+        if (res.ok){
+          const m = await res.json();
+          const el = document.getElementById('engineVer');
+          if (el) el.textContent = `version: ${m.version || 'unknown'}`;
+        }
+      } catch {}
+    }
+    updateEngineVersion();
+    // Check assets mount on the server
+    async function updateAssetsMount(){
+      try {
+        const res = await fetchWithFallback('/debug/assets-check', { cache:'no-store' });
+        const el = document.getElementById('assetsMount');
+        if (!el) return;
+        if (!res.ok){ el.textContent = 'assets mount: (unavailable)'; return; }
+        const j = await res.json();
+        if (j && j.ok){
+          el.textContent = j.exists ? `assets mount: OK (${j.dir})` : `assets mount: MISSING (${j.dir})`;
+        } else {
+          el.textContent = 'assets mount: (error)';
+        }
+      } catch { const el = document.getElementById('assetsMount'); if (el) el.textContent = 'assets mount: (error)'; }
+    }
+    updateAssetsMount();
+    // Engine piece count (server-side ground truth)
+    async function updateEngineCount(){
+      try {
+        const res = await fetchRoom('/debug/piece-count', { cache:'no-store' });
+        const el = document.getElementById('engineCountStatus');
+        if (!el) return;
+        if (res.ok){
+          const j = await res.json();
+          if (j && j.ok){
+            const by = j.byColor || {};
+            const byStr = Object.keys(by).length ? ` [${Object.entries(by).map(([k,v])=>`${k}:${v}`).join(' ')}]` : '';
+            el.textContent = `engine pieces: total ${j.total}${byStr}`;
+          } else {
+            el.textContent = `engine pieces: (error)`;
+          }
+        } else {
+          // suppress noise if endpoint unavailable
+          el.textContent = 'engine pieces: (unavailable)';
+        }
+      } catch { const el = document.getElementById('engineCountStatus'); if (el) el.textContent = 'engine pieces: (unavailable)'; }
+    }
+    updateEngineCount();
+    const refreshCountBtn = document.getElementById('refreshCount');
+    if (refreshCountBtn){ refreshCountBtn.addEventListener('click', updateEngineCount); }
+    const refreshBtn = document.getElementById('refreshVer');
+    if (refreshBtn){ refreshBtn.addEventListener('click', updateEngineVersion); }
+    const regenBtn = document.getElementById('regenVer');
+    if (regenBtn){
+      regenBtn.addEventListener('click', async ()=>{
+        try {
+          const res = await fetchWithFallback('/admin/regenerate-manifest', { method:'POST' });
+          if (res.ok){ await updateEngineVersion(); }
+        } catch {}
+      });
+    }
+
+    // New Game / New Chess: reset server engine state
+    (function(){
+      const btn = document.getElementById('newGameBtn');
+      const chessBtn = document.getElementById('newChessBtn');
+      if (btn){ btn.addEventListener('click', async ()=>{
+        try {
+          const ok = confirm('Start a new game and reset the board for all clients?');
+          if (!ok) return;
+          const res = await fetchRoom('/admin/new-game', { method:'POST' });
+          if (res.ok){
+            // Server will broadcast a new state; optimistically clear selection
+            sel = null; legalTargets = []; dragging = null; errEl.textContent = '';
+          } else {
+            const t = await res.text().catch(()=> '');
+            errEl.textContent = t || 'New Game failed';
+          }
+        } catch(e){ errEl.textContent = 'New Game error'; }
+      }); }
+      if (chessBtn){ chessBtn.addEventListener('click', async ()=>{
+        try {
+          const ok = confirm('Start a Chess-only game (WHITE vs BLACK) and reset for all clients?');
+          if (!ok) return;
+          const res = await fetchRoom('/admin/new-chess', { method:'POST' });
+          if (res.ok){ sel = null; legalTargets = []; dragging = null; errEl.textContent = ''; }
+          else { const t = await res.text().catch(()=> ''); errEl.textContent = t || 'New Chess failed'; }
+        } catch(e){ errEl.textContent = 'New Chess error'; }
+      }); }
+    })();
+
+    // Library list: fetch from server and render
+    (function(){
+      const refreshBtn = document.getElementById('refreshLib');
+      const status = document.getElementById('libStatus');
+      const list = document.getElementById('libList');
+      const openBtn = document.getElementById('openLibraryWin');
+      if (!refreshBtn || !status || !list) return;
+      async function refresh(){
+        try {
+          status.textContent = '(loading)';
+          list.innerHTML = '';
+          const res = await fetchRoom('/library/list', { cache:'no-store' });
+          if (!res.ok){ status.textContent = '(unavailable)'; libItemsCache = []; return; }
+          const data = await res.json();
+          const items = (data && data.ok && Array.isArray(data.items)) ? data.items : [];
+          libItemsCache = items;
+          status.textContent = `(${items.length})`;
+          for (const it of items){
+            const row = document.createElement('div');
+            row.textContent = `${it.ended_at || '(unknown)'} - ${it.moves ?? '?'} moves`;
+            row.style.display = 'none';
+            list.appendChild(row);
+          }
+        } catch(e){
+          libItemsCache = [];
+          status.textContent = '(unavailable)';
+        }
+      }
+      refreshBtn.addEventListener('click', refresh);
+      refresh();
+      if (openBtn){
+        openBtn.addEventListener('click', ()=>{
+          if (!libItemsCache.length){
+            openInfoWindow('Game Library', '<p>No saved games yet.</p>', { raw: true });
+            return;
+          }
+          const rows = libItemsCache.map(item => {
+            const safeName = escapeHtml(item.name || '');
+            const date = escapeHtml(item.ended_at || '(unknown)');
+            const moves = escapeHtml(String(item.moves ?? '?'));
+            const roomSuffix = currentRoom && currentRoom !== ROOM_DEFAULT ? `?room=${encodeURIComponent(currentRoom)}` : '';
+            const download = `${escapeHtml(currentBase())}/library/game/${encodeURIComponent(item.name)}${roomSuffix}`;
+            return `<tr><td>${date}</td><td>${moves}</td><td><a href="${download}" target="_blank" rel="noopener">Download</a></td><td><button class="libLoad" data-name="${safeName}">Load</button></td></tr>`;
+          }).join('');
+          const html = `<h1>Game Library – ${escapeHtml(currentRoom)}</h1><table><thead><tr><th>Finished</th><th>Moves</th><th>Download</th><th>Load</th></tr></thead><tbody>${rows}</tbody></table><p class="muted">Use Load to send the game back to the main window.</p>`;
+          openInfoWindow('Game Library', html, { raw: true, extraScript: "document.addEventListener('click', function(ev){ const btn = ev.target.closest('.libLoad'); if (!btn) return; const name = btn.getAttribute('data-name'); if (!window.opener || typeof window.opener.__loadLibraryGame !== 'function'){ alert('Main window is not available.'); return; } window.opener.__loadLibraryGame(name); });" });
+        });
+      }
+    })();
+
+    // Move list controls
+    (function(){
+      const back = document.getElementById('btnBack');
+      const fwd  = document.getElementById('btnFwd');
+      const res  = document.getElementById('btnResume');
+      function redrawFromCursor(){
+        const st = window.__lastState || null; if (!st) return;
+        const grid = reconstructBoardAt(timeline.cursor);
+        drawBoard({ board: grid, turn: st.turn });
+        renderMoveList();
+      }
+      if (back){
+        back.addEventListener('click', ()=>{
+          if (!timeline.initial) return;
+          timeline.live = false;
+          timeline.cursor = Math.max(-1, (isFinite(timeline.cursor)? timeline.cursor : -1) - 1);
+          redrawFromCursor();
+        });
+      }
+      if (fwd){
+        fwd.addEventListener('click', ()=>{
+          if (!timeline.initial) return;
+          timeline.live = false;
+          timeline.cursor = Math.min(timeline.moves.length - 1, (isFinite(timeline.cursor)? timeline.cursor : -1) + 1);
+          redrawFromCursor();
+        });
+      }
+      if (res){
+        res.addEventListener('click', ()=>{
+          timeline.live = true;
+          timeline.cursor = timeline.moves.length - 1;
+          // Redraw live state
+          drawBoard(window.__lastState || null);
+          renderMoveList();
+        });
+      }
+    })();
+
+    // Live game helpers
+    (function(){
+      if (startLiveGameBtn){
+        startLiveGameBtn.addEventListener('click', ()=>{
+          if (!ws || ws.readyState !== 1){ errEl.textContent = 'Not connected'; return; }
+          errEl.textContent = '';
+          try { ws.send(JSON.stringify({type:'request_new_game'})); } catch {}
+          requestFreshState(300);
+        });
+      }
+      if (openAllTabsBtn){
+        openAllTabsBtn.addEventListener('click', ()=>{
+          const baseName = sanitizeUserId(
+            (displayNameInput && displayNameInput.value) ||
+            (userIdInput && userIdInput.value) ||
+            userId || ''
+          );
+          if (!baseName){
+            errEl.textContent = 'Enter a display name before opening all seats.';
+            if (displayNameInput) displayNameInput.focus();
+            return;
+          }
+          saveDisplayName(baseName);
+          const seats = ['GREY','BLACK','PINK'];
+          const baseLink = buildRoomUrl(currentRoom);
+          const allowSelfplay = !!authTokenGlobal;
+          const testPopup = window.open('', '_blank', 'noopener,noreferrer');
+          if (!testPopup){
+            return;
+          }
+          testPopup.close();
+          let blocked = false;
+          seats.forEach((seat, idx)=>{
+            const delayMs = idx * 400;
+            setTimeout(()=>{
+              try {
+                const url = new URL(baseLink);
+                url.searchParams.set('seat', seat);
+                const suffix = idx + 2; // primary keeps baseName; others get baseName2/3/4
+                url.searchParams.set('user', sanitizeUserId(`${baseName}${suffix}`));
+                url.searchParams.set('connect', '1');
+                if (allowSelfplay) url.searchParams.set('selfplay', '1');
+                const win = window.open(url.toString(), '_blank', 'noopener');
+                if (!win) blocked = true;
+              } catch {
+                const selfplayParam = allowSelfplay ? '&selfplay=1' : '';
+                const fallback = `${baseLink}${baseLink.includes('?') ? '&' : '?'}seat=${encodeURIComponent(seat)}&user=${encodeURIComponent(baseName + (idx+2))}&connect=1${selfplayParam}`;
+                const win = window.open(fallback, '_blank', 'noopener');
+                if (!win) blocked = true;
+              }
+            }, delayMs);
+          });
+        });
+      }
+      if (chatSend){
+        chatSend.addEventListener('click', ()=>{ sendChatMessage(); });
+      }
+      if (chatInput){
+        chatInput.addEventListener('keydown', (ev)=>{
+          if (ev.key === 'Enter'){
+            ev.preventDefault();
+            sendChatMessage();
+          }
+        });
+      }
+    })();
+
+    function requireSeatForControl(){
+      if (!ws || ws.readyState !== 1){
+        errEl.textContent = 'Not connected';
+        return null;
+      }
+      const seat = connectedSeat || '';
+      if (!CONTROL_SEATS.includes(seat)){
+        errEl.textContent = 'Take a seat to use this control.';
+        return null;
+      }
+      return seat;
+    }
+    if (btnForceDuel){
+      btnForceDuel.addEventListener('click', ()=>{
+        requestDuelReady();
+        const seat = requireSeatForControl(); if (!seat) return;
+        errEl.textContent = '';
+        try { ws.send(JSON.stringify({type:'force_duel'})); } catch {}
+      });
+    }
+    if (btnSwapKQ){
+      btnSwapKQ.addEventListener('click', ()=>{
+        if (btnSwapKQ.disabled) return;
+        requestDuelReady();
+        const seat = requireSeatForControl(); if (!seat) return;
+        errEl.textContent = '';
+        try { ws.send(JSON.stringify({type:'swap_kq', payload:{ color: canonicalSeat(seat) }})); } catch {}
+      });
+    }
+    if (btnSwitchSeat){
+      btnSwitchSeat.addEventListener('click', ()=>{
+        if (btnSwitchSeat.disabled) return;
+        requestDuelReady();
+        const seat = canonicalSeat(connectedSeat || '');
+        if (seat !== 'WHITE' && seat !== 'BLACK') return;
+        const target = seat === 'WHITE' ? 'BLACK' : 'WHITE';
+        errEl.textContent = '';
+        try { ws.send(JSON.stringify({type:'switch_seat', payload:{ seat: target }})); } catch {}
+      });
+    }
+    if (btnNewGame){
+      btnNewGame.addEventListener('click', ()=>{
+        if (btnNewGame.disabled) return;
+        requestDuelReady();
+        const seat = requireSeatForControl(); if (!seat) return;
+        errEl.textContent = '';
+        try { ws.send(JSON.stringify({type:'request_new_game'})); } catch {}
+        requestFreshState();
+      });
+    }
+    if (btnConfirmNewGame){
+      btnConfirmNewGame.addEventListener('click', ()=>{
+        if (btnConfirmNewGame.disabled) return;
+        requestDuelReady();
+        const seat = requireSeatForControl(); if (!seat) return;
+        errEl.textContent = '';
+        try { ws.send(JSON.stringify({type:'confirm_new_game'})); } catch {}
+        requestFreshState();
+      });
+    }
+    if (btnQuitSeat){
+      btnQuitSeat.addEventListener('click', ()=>{
+        if (btnQuitSeat.disabled) return;
+        requestDuelReady();
+        const seat = requireSeatForControl(); if (!seat) return;
+        errEl.textContent = '';
+        try { ws.send(JSON.stringify({type:'resign'})); } catch {}
+      });
+    }
+    if (btnResetRoom){
+      btnResetRoom.addEventListener('click', ()=>{
+        if (!ws || ws.readyState !== 1){
+          errEl.textContent = 'Not connected';
+          return;
+        }
+        errEl.textContent = '';
+        try { ws.send(JSON.stringify({type:'reset_room'})); } catch {}
+        requestFreshState(300);
+      });
+    }
+
+    // Rules reference: loaded on demand from /static/rules_reference.txt
+    (function(){
+      const openBtn = document.getElementById('openRulesWin');
+      const syncBtn = document.getElementById('syncRules');
+      if (!openBtn && !syncBtn) return;
+      let rulesCache = '';
+      let loaded = false;
+      async function ensureLoaded(){
+        if (loaded) return rulesCache;
+        try {
+          const res = await fetchWithFallback('/static/rules_reference.txt', { cache:'no-store' });
+          rulesCache = await res.text();
+          loaded = true;
+        } catch(e){
+          rulesCache = 'Unable to load rules_reference.txt';
+        }
+        return rulesCache;
+      }
+      if (openBtn){
+        openBtn.addEventListener('click', async ()=>{
+          const txt = await ensureLoaded();
+          openInfoWindow('Bishops Rules', txt);
+        });
+      }
+      if (syncBtn){
+        syncBtn.addEventListener('click', async ()=>{
+          try {
+            const res = await fetchWithFallback('/admin/sync-rules', { method:'POST' });
+            if (res.ok){
+              loaded = false;
+              errEl.textContent = '';
+            } else {
+              const msg = await res.text().catch(()=> 'Sync failed');
+              errEl.textContent = msg || 'Sync failed';
+            }
+          } catch(e){
+            errEl.textContent = 'Sync failed';
+          }
+        });
+      }
+    })();
+
+    // Repaint test: draw a known PNG on the canvas and probe the image element
+    (function(){
+      const btn = document.getElementById('repaintTest');
+      const probe = document.getElementById('imgProbe');
+      const probeStatus = document.getElementById('imgProbeStatus');
+      if (probe){
+        try { probe.src = `${currentBase()}/assets/white_K.png`; } catch {}
+        probe.onload = () => { if (probeStatus) probeStatus.textContent = 'ok'; };
+        probe.onerror = () => { if (probeStatus) probeStatus.textContent = 'fail'; };
+      }
+      if (btn){
+        btn.addEventListener('click', async ()=>{
+          try{
+            const img = new Image(); img.crossOrigin='anonymous';
+            img.onload = ()=>{
+              const S = Math.floor(Math.min(cvs.width, cvs.height) / 12);
+              const sz = Math.max(12, Math.floor(S*0.9));
+              ctx.drawImage(img, 4, 4, sz, sz);
+            };
+            img.onerror = ()=>{
+              // draw a red box if load fails
+              ctx.fillStyle = '#dd4444'; ctx.fillRect(4,4,24,24);
+            };
+            img.src = `${currentBase()}/assets/white_K.png`;
+          } catch(e){}
+        });
+      }
+    })();
+
+    // Apply URL params for auto seat/view/connect
+    (function(){
+      const validSeats = ['WHITE','GREY','BLACK','PINK'];
+      const urlSeat = pickParam('seat', validSeats);
+      if (urlSeat && validSeats.includes(urlSeat)){
+        // In chess-only mode, disallow GREY/PINK seat selection
+        const seatToUse = (chessOnly && (urlSeat==='GREY' || urlSeat==='PINK')) ? 'WHITE' : urlSeat;
+        seatSel.value = seatToUse;
+        const v = (params.get('view') || seatToUse || 'AUTO').toUpperCase();
+        const viewSel = document.getElementById('view');
+        const validViews = chessOnly ? ['AUTO','WHITE','BLACK'] : ['AUTO','WHITE','GREY','BLACK','PINK'];
+        if (viewSel){ viewSel.value = validViews.includes(v) ? v : 'AUTO'; }
+      }
+      const shouldConnect = ['1','TRUE','YES'].includes((params.get('connect')||'').toUpperCase());
+      if (shouldConnect){
+        setTimeout(()=> connectBtn.click(), 50);
+      }
+    })();
+
+    // If chess-only: restrict seat and view options visually in the UI
+    (function(){
+      if (!chessOnly) return;
+      try {
+        // Seat dropdown: disable GREY/PINK
+        Array.from(seatSel.options).forEach(opt => {
+          if (opt && (opt.value==='GREY' || opt.value==='PINK')){
+            opt.disabled = true; opt.hidden = true;
+          }
+        });
+        // View dropdown: disable GREY/PINK
+        const viewSel = document.getElementById('view');
+        if (viewSel){
+          Array.from(viewSel.options).forEach(opt => {
+            if (opt && (opt.value==='GREY' || opt.value==='PINK')){
+              opt.disabled = true; opt.hidden = true;
+            }
+          });
+        }
+      } catch {}
+    })();
+  </script>
+</body>
+</html>
