@@ -1774,7 +1774,7 @@ function renderRoomsFromCache(){
   let usedFallback = false;
   let piecesDrawn = 0;
   let expectedPieces = 0;
-  function pieceUrl(_color, kind){ return `${currentBase()}/assets/white_${kind}.png`; }
+  function pieceUrl(_color, kind){ return `/assets/white_${kind}.png`; }
       function tintImage(img, colorStr){
         try {
           const key = (img.src || 'img') + '|' + colorStr;
@@ -3015,7 +3015,7 @@ function renderRoomsFromCache(){
       const probe = document.getElementById('imgProbe');
       const probeStatus = document.getElementById('imgProbeStatus');
       if (probe){
-        try { probe.src = `${currentBase()}/assets/white_K.png`; } catch {}
+        try { probe.src = `/assets/white_K.png`; } catch {}
         probe.onload = () => { if (probeStatus) probeStatus.textContent = 'ok'; };
         probe.onerror = () => { if (probeStatus) probeStatus.textContent = 'fail'; };
       }
@@ -3032,7 +3032,7 @@ function renderRoomsFromCache(){
               // draw a red box if load fails
               ctx.fillStyle = '#dd4444'; ctx.fillRect(4,4,24,24);
             };
-            img.src = `${currentBase()}/assets/white_K.png`;
+            img.src = `/assets/white_K.png`;
           } catch(e){}
         });
       }
