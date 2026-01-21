@@ -942,6 +942,20 @@ class GameHub:
             self._conn_counter += 1
             self.clients[conn_id] = {"seat_raw": seat_raw, "seat": seat_norm, "ws": ws, "user": user_id}
             self.user_connections.setdefault(user_id, set()).add(conn_id)
+        # Auto-reset stale room when only one seat is occupied.
+        try:
+            moves_played = len(self.engine.moves_list)
+        except Exception:
+            moves_played = 0
+        try:
+            seat_count = len(self.seat_owners)
+        except Exception:
+            seat_count = 0
+        if moves_played > 0 and seat_count <= 1:
+            try:
+                await self.reset_game()
+            except Exception:
+                pass
         # Broadcast updated counts
         await self._broadcast({"type": "rooms_update", "rooms": rooms.snapshot()})
         await self._send_state(ws)
